@@ -1,0 +1,16 @@
+{
+  "name": "fleetHealthScore",
+  "supportEmail": "poze1988@gmail.com",
+  "version": "0.1.0",
+  "isSigned": false,
+  "items": [
+    {
+      "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/",
+      "path": "ActivityLink/",
+      "menuName": {
+        "en": "Fleet Health Score",
+        "pt-BR": "Fleet Health Score"
+      }
+    }
+  ]
+}
