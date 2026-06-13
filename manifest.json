@@ -1,0 +1,16 @@
+{
+  "name": "FleetHealthScore",
+  "short_name": "FleetHealthScore",
+  "description": "Add-in Geotab para score técnico de saúde da frota",
+  "start_url": "https://brunofelisbino.github.io/fleet-health-score-geotab/",
+  "display": "standalone",
+  "background_color": "#f6f8fb",
+  "theme_color": "#0ea5e9",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
