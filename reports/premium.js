@@ -47,8 +47,177 @@ async function load(api){
 function apply(){const f=$('scoreFilter').value;filtered=vehicles.filter(v=>f==='critical'?v.score<60:f==='nodata'?v.dias>=7:f==='voltage'?(v.vlow+v.vhigh)>0:true);render()}
 function render(){if(!$('kpis'))return;dbName=$('reportName')&&$('reportName').value?$('reportName').value:'Rotagyn';const s=summary(filtered);$('dbBox').textContent=dbName;$('countBox').textContent=s.total.toLocaleString('pt-BR');$('kpis').innerHTML=[['Fleet Health Index',s.avg,'de 100','var(--blue)'],['Veículos analisados',s.total,'base filtrada','var(--txt)'],['Críticos',s.critical+s.risk,pct(s.critical+s.risk,s.total)+'% da frota','var(--red)'],['Sem dados 7d+',s.nodata,'prioridade operacional','var(--red)'],['Tensão fora',s.voltage,'qualidade elétrica','var(--orange)']].map(c=>`<div class="kpi"><span>${c[0]}</span><b style="color:${c[3]}">${c[1]}</b><small>${c[2]}</small></div>`).join('');const probs=topProblems(filtered),max=Math.max(1,...probs.map(p=>p.value));$('problems').innerHTML=probs.map(p=>`<div class="barrow"><b>${p.label}</b><div class="track"><div class="fill" style="width:${Math.round(p.value/max*100)}%;background:${p.color}"></div></div><span>${p.value}</span></div>`).join('');$('exec').innerHTML=`<div><b>Banco/Base:</b> ${esc(dbName)}</div><div><b>Leitura:</b> ${executive(s.avg)}</div><div><b>Prioridade:</b> atuar primeiro em score abaixo de 60, sem dados 7d+, tensão fora e desconexão.</div>`;$('table').innerHTML='<table><thead><tr><th>#</th><th>Score</th><th>Placa</th><th>Veículo</th><th>Último dado</th><th>Problema principal</th><th>Status</th></tr></thead><tbody>'+filtered.slice(0,80).map((v,i)=>`<tr><td>${i+1}</td><td><b style="color:${scVar(v.score)}">${v.score}</b></td><td><b style="font-family:var(--mono);color:var(--txt)">${esc(v.placa||'-')}</b></td><td class="vehicleCell" title="${esc(v.nome)}">${esc(v.nome)}</td><td>${v.dias>=7?'7d+':v.dias+'d'}</td><td>${esc(problem(v))}</td><td><span class="badge ${scClass(v.score)}">${scLabel(v.score)}</span></td></tr>`).join('')+'</tbody></table>'}
 function demo(){dbName=$('reportName').value||'Rotagyn';vehicles=[['UDV2F12','UDV2F12 | CITROEN BASALT',25,0,0,0,0,0,0,1],['SRG8B64','BYD SEAL | SRG8B64 | TESTE GO9 4G',25,0,0,0,0,0,0,1],['SDJ0J48','SDJ0J48 | Fiat Cronos',25,11,0,0,0,0,0,1],['Painel rotagyn','Painel rotagyn',25,7,0,0,0,0,0,1],['Teste GO Focus','Teste GO Focus',45,11,0,0,0,0,0,0],['SDL1B41','SDL1B41 | VW Virtus | TESTE GO9 4G',45,28,0,0,0,0,0,0],['FOM4A84','FOM4A84 | Jeep Commander',75,0,0,0,1,0,0,0],['GAX3B67','AUDI - NSA',75,0,0,0,1,0,0,0],['DBB0001','DBB0001 TESTE',82,2,0,0,0,0,0,0],['TFR859','TFR859 | ROTAVERDE | TESTE GO9 4G',90,0,3,0,0,0,0,0],['TFP9I32','TFP9I32 | ROTAVERDE | TESTE GO9 4G',95,0,0,0,0,0,0,0]].map((r,i)=>({id:'d'+i,placa:r[0],nome:r[1],score:r[2],dias:r[3],reboots:r[4],gps:r[5],vlow:r[6],vhigh:r[7],faults:r[8],unplugged:r[9]}));filtered=[...vehicles];status('Demo');alertMsg('Dados simulados carregados para prévia do PDF premium.','ok');render()}
-function buildPdf(){const s=summary(filtered),probs=topProblems(filtered),max=Math.max(1,...probs.map(p=>p.value)),top=[...filtered].sort((a,b)=>a.score-b.score).slice(0,18);$('pdfStage').innerHTML=`<div class="pdf-page"><div class="pdf-topbar"></div><div class="pdf-brand"><img class="pdf-logo" src="${LOGO}"><div class="pdf-chip">RELATÓRIO INTERNO</div></div><div class="pdf-cover"><h2>Fleet Health Score</h2><p>Relatório premium de saúde técnica da frota</p><div class="pdf-meta"><div class="pdf-chip">Banco/Base: ${esc(dbName)}</div><div class="pdf-chip">Base ativa: 30 dias</div><div class="pdf-chip">Score: últimos 7 dias</div><div class="pdf-chip">Gerado em ${new Date().toLocaleString('pt-BR')}</div></div><div class="pdf-cover-grid"><div class="pdf-highlight"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#bae6fd;font-weight:900">Resumo executivo</div><div style="font-size:24px;font-weight:900;margin-top:10px;line-height:1.22">${executive(s.avg)}</div><div style="margin-top:18px;color:#dbeafe;font-size:13px;line-height:1.6">Priorizar veículos com <b>score abaixo de 60</b>, casos sem dados há mais de <b>7 dias</b>, eventos de <b>desconexão</b> e ocorrências de <b>tensão fora do padrão</b>.</div></div><div class="pdf-highlight" style="display:flex;align-items:center;justify-content:center"><div class="pdf-index"><b>${s.avg}</b><span>Health Index</span></div></div></div></div><div class="pdf-footer"><span>Fleet Health Score • Rotagyn</span><span>Página 1</span></div></div><div class="pdf-page"><div class="pdf-topbar"></div><div class="pdf-brand"><div><h1 class="pdf-title">Resumo executivo</h1><div class="pdf-subtitle">KPIs e leitura estratégica da frota</div></div><img class="pdf-logo" src="${LOGO}"></div><div class="pdf-grid-4"><div class="pdf-kpi"><small>Fleet Health Index</small><b style="color:#0ea5e9">${s.avg}</b><span>de 100</span></div><div class="pdf-kpi"><small>Veículos analisados</small><b>${s.total}</b><span>base filtrada</span></div><div class="pdf-kpi"><small>Críticos + risco</small><b style="color:#ef4444">${s.critical+s.risk}</b><span>${pct(s.critical+s.risk,s.total)}% da frota</span></div><div class="pdf-kpi"><small>Sem dados 7d+</small><b style="color:#f97316">${s.nodata}</b><span>prioridade operacional</span></div></div><div class="pdf-section"><div class="pdf-two-col"><div class="pdf-card"><div class="pdf-section-title">Top problemas</div><div class="pdf-bars">${probs.map(p=>`<div class="row"><div>${p.label}</div><div class="track"><div class="fill" style="width:${Math.round(p.value/max*100)}%;background:${p.color}"></div></div><div>${p.value}</div></div>`).join('')}</div></div><div class="pdf-card"><div class="pdf-section-title">Leitura executiva</div><div class="pdf-summary-box"><b>Banco/Base:</b> ${esc(dbName)}</div><div class="pdf-summary-box"><b>Condição atual:</b> ${executive(s.avg)}</div><div class="pdf-summary-box"><b>Prioridade:</b> atuar primeiro em score abaixo de 60, sem dados 7d+, tensão fora e eventos de desconexão.</div><div class="pdf-summary-box"><b>Faixa saudável:</b> 80 a 100 • <b>Atenção:</b> 60 a 79 • <b>Crítico:</b> 40 a 59 • <b>Risco alto:</b> abaixo de 40</div></div></div></div><div class="pdf-footer"><span>Fleet Health Score • Resumo Executivo</span><span>Página 2</span></div></div><div class="pdf-page landscape"><div class="pdf-topbar"></div><div class="pdf-brand"><div><h1 class="pdf-title">Ranking técnico da frota</h1><div class="pdf-subtitle">Veículos mais críticos e suas causas principais</div></div><img class="pdf-logo" src="${LOGO}"></div><table class="pdf-table"><thead><tr><th class="c-num">#</th><th class="c-score">Score</th><th class="c-plate">Placa</th><th>Veículo</th><th class="c-last">Último dado</th><th>Problema principal</th><th class="c-status">Status</th></tr></thead><tbody>${top.map((v,i)=>`<tr><td>${i+1}</td><td style="font-weight:900;color:${scColor(v.score)}">${v.score}</td><td style="font-weight:800">${esc(v.placa||'-')}</td><td>${esc(v.nome||'-')}</td><td>${v.dias>=7?'7d+':v.dias+'d'}</td><td>${esc(problem(v))}</td><td><span class="pdf-badge ${pdfBadge(v.score)}">${scLabel(v.score)}</span></td></tr>`).join('')}</tbody></table><div class="pdf-footer" style="left:36px;right:36px"><span>Fleet Health Score • Ranking Técnico</span><span>Página 3</span></div></div><div class="pdf-page"><div class="pdf-topbar"></div><div class="pdf-brand"><div><h1 class="pdf-title">Plano de ação recomendado</h1><div class="pdf-subtitle">Prioridades de atuação operacional</div></div><img class="pdf-logo" src="${LOGO}"></div><div class="pdf-action"><h4>Prioridade 1 — veículos sem dados há mais de 7 dias</h4><p>Validar energia, dados móveis, GPS, comunicação e integridade do equipamento. Esses casos impactam diretamente a rastreabilidade da frota.</p></div><div class="pdf-action"><h4>Prioridade 2 — tensão baixa ou alta recorrente</h4><p>Revisar bateria, alternador, aterramento, alimentação do dispositivo e qualidade da instalação elétrica.</p></div><div class="pdf-action"><h4>Prioridade 3 — desconexão e possível remoção não autorizada</h4><p>Tratar de forma imediata os casos de unplugged/desconectado, pois podem indicar remoção indevida ou perda de alimentação crítica.</p></div><div class="pdf-action"><h4>Prioridade 4 — reboots e falhas GPS reincidentes</h4><p>Abrir análise técnica focando em firmware, posição do equipamento, estabilidade da alimentação e histórico de falhas por veículo.</p></div><div class="pdf-section"><div class="pdf-section-title">Encaminhamento sugerido</div><div class="pdf-summary-box">Exportar o CSV dos críticos e encaminhar para suporte/campo com SLA de tratativa.</div><div class="pdf-summary-box">Separar revisão por grupo/cliente quando houver volume alto de veículos críticos.</div><div class="pdf-summary-box">Na próxima evolução, incluir comparativo semanal/mensal e histórico do índice por banco/base.</div></div><div class="pdf-footer"><span>Fleet Health Score • Plano de Ação</span><span>Página 4</span></div></div>`}
-async function downloadPdf(){if(!filtered.length){alertMsg('Carregue a análise antes de baixar o PDF.','err');return}if(!window.html2canvas||!window.jspdf){alertMsg('Bibliotecas de PDF ainda não carregaram. Aguarde alguns segundos e tente novamente.','err');return}dbName=$('reportName').value||dbName||'Rotagyn';status('Gerando PDF...');alertMsg('Gerando PDF premium. Aguarde alguns segundos...');buildPdf();await new Promise(r=>setTimeout(r,200));const {jsPDF}=window.jspdf,pdf=new jsPDF('p','mm','a4'),pages=Array.from(document.querySelectorAll('#pdfStage .pdf-page'));for(let i=0;i<pages.length;i++){const page=pages[i],land=page.classList.contains('landscape'),canvas=await html2canvas(page,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false}),img=canvas.toDataURL('image/jpeg',0.96);if(i>0)pdf.addPage('a4',land?'landscape':'portrait');pdf.setPage(i+1);pdf.addImage(img,'JPEG',0,0,land?297:210,land?210:297)}pdf.save('fleet-health-report-'+clean(dbName)+'-'+new Date().toISOString().slice(0,10)+'.pdf');status(filtered.length+' veículos');alertMsg('PDF premium gerado com sucesso.','ok')}
+
+function buildPdf(){
+  const s=summary(filtered),
+        probs=topProblems(filtered),
+        max=Math.max(1,...probs.map(p=>p.value)),
+        top=[...filtered].sort((a,b)=>a.score-b.score).slice(0,20);
+
+  // Cor dinâmica do Health Index baseada no score
+  const scoreColor = scColor(s.avg);
+  // Gradiente do anel baseado no score
+  const ringGrad = s.avg>=80
+    ? 'conic-gradient(#10b981 0% '+(s.avg*3.6)+'deg, rgba(255,255,255,0.12) '+(s.avg*3.6)+'deg 360deg)'
+    : s.avg>=60
+      ? 'conic-gradient(#f59e0b 0% '+(s.avg*3.6)+'deg, rgba(255,255,255,0.12) '+(s.avg*3.6)+'deg 360deg)'
+      : s.avg>=40
+        ? 'conic-gradient(#f97316 0% '+(s.avg*3.6)+'deg, rgba(255,255,255,0.12) '+(s.avg*3.6)+'deg 360deg)'
+        : 'conic-gradient(#ef4444 0% '+(s.avg*3.6)+'deg, rgba(255,255,255,0.12) '+(s.avg*3.6)+'deg 360deg)';
+
+  // ── PÁGINA 1: CAPA DARK (estilo imagem referência) ──
+  const p1 = `
+<div class="pdf-page pdf-cover-page">
+  <div class="pcp-dots"></div>
+  <div class="pcp-header">
+    <img class="pcp-logo" src="${LOGO}">
+  </div>
+  <div class="pcp-hero">
+    <div class="pcp-title-block">
+      <div class="pcp-bar"></div>
+      <div>
+        <h1 class="pcp-title">Fleet<br>Health Score</h1>
+        <p class="pcp-tagline">Relatório premium de saúde técnica da frota</p>
+      </div>
+    </div>
+    <div class="pcp-truck-silhouette">
+      <svg viewBox="0 0 340 180" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;opacity:.18">
+        <rect x="10" y="60" width="200" height="90" rx="8" stroke="#4db8ff" stroke-width="2"/>
+        <rect x="210" y="90" width="80" height="60" rx="6" stroke="#4db8ff" stroke-width="2"/>
+        <rect x="220" y="98" width="60" height="32" rx="3" stroke="#4db8ff" stroke-width="1.5"/>
+        <circle cx="50" cy="155" r="18" stroke="#4db8ff" stroke-width="2"/>
+        <circle cx="50" cy="155" r="8" stroke="#4db8ff" stroke-width="1.5"/>
+        <circle cx="170" cy="155" r="18" stroke="#4db8ff" stroke-width="2"/>
+        <circle cx="170" cy="155" r="8" stroke="#4db8ff" stroke-width="1.5"/>
+        <circle cx="260" cy="155" r="16" stroke="#4db8ff" stroke-width="2"/>
+        <circle cx="260" cy="155" r="7" stroke="#4db8ff" stroke-width="1.5"/>
+        <rect x="130" y="60" width="2" height="90" stroke="#4db8ff" stroke-width="1.5"/>
+        <line x1="10" y1="110" x2="210" y2="110" stroke="#4db8ff" stroke-width="1"/>
+        <rect x="130" y="70" width="80" height="40" rx="4" stroke="#4db8ff" stroke-width="1.5"/>
+      </svg>
+    </div>
+  </div>
+  <div class="pcp-chips">
+    <div class="pcp-chip"><span class="pcp-chip-icon">🗄</span><div><div class="pcp-chip-label">Banco/Base</div><div class="pcp-chip-val">${esc(dbName)}</div></div></div>
+    <div class="pcp-chip"><span class="pcp-chip-icon">📅</span><div><div class="pcp-chip-label">Base ativa</div><div class="pcp-chip-val">30 dias</div></div></div>
+    <div class="pcp-chip"><span class="pcp-chip-icon">⏱</span><div><div class="pcp-chip-label">Score</div><div class="pcp-chip-val">últimos 7 dias</div></div></div>
+    <div class="pcp-chip"><span class="pcp-chip-icon">📋</span><div><div class="pcp-chip-label">Gerado em</div><div class="pcp-chip-val">${new Date().toLocaleString('pt-BR')}</div></div></div>
+  </div>
+  <div class="pcp-exec-card">
+    <div class="pcp-exec-text">
+      <div class="pcp-exec-header"><span class="pcp-shield">🛡</span> Resumo Executivo</div>
+      <div class="pcp-exec-rule"></div>
+      <p>Este relatório apresenta uma visão consolidada da saúde técnica da frota com base nas análises mais recentes dos veículos monitorados.</p>
+      <p>As possíveis remoções são identificadas por eventos de desconexão/unplugged e exibem a data do evento no ranking e no CSV.</p>
+      <div class="pcp-kpi-row">
+        <div class="pcp-kpi-item"><span class="pcp-kpi-icon">🚛</span><b>${s.total}</b><small>Veículos<br>monitorados</small></div>
+        <div class="pcp-kpi-item warn"><span class="pcp-kpi-icon">⚠</span><b>${s.critical+s.risk}</b><small>Veículos com<br>alertas</small></div>
+        <div class="pcp-kpi-item red"><span class="pcp-kpi-icon">🔧</span><b>${s.nodata}</b><small>Sem dados<br>7d+</small></div>
+        <div class="pcp-kpi-item green"><span class="pcp-kpi-icon">✓</span><b>${pct(s.healthy,s.total)}%</b><small>Disponib.<br>operacional</small></div>
+      </div>
+    </div>
+    <div class="pcp-index-wrap">
+      <div class="pcp-ring-outer" style="background:${ringGrad}">
+        <div class="pcp-ring-inner">
+          <b style="color:${scoreColor}">${s.avg}</b>
+          <span>Health Index</span>
+          <div class="pcp-pulse">〜</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pdf-footer"><span>Fleet Health Score • ${esc(dbName)}</span><span>Página 1</span></div>
+</div>`;
+
+  // ── PÁGINA 2: RESUMO EXECUTIVO ──
+  const p2 = `
+<div class="pdf-page">
+  <div class="pdf-topbar"></div>
+  <div class="pdf-brand">
+    <div><h1 class="pdf-title">Resumo executivo</h1><div class="pdf-subtitle">KPIs e leitura estratégica da frota</div></div>
+    <img class="pdf-logo" src="${LOGO}">
+  </div>
+  <div class="pdf-grid-4">
+    <div class="pdf-kpi"><small>Fleet Health Index</small><b style="color:${scoreColor}">${s.avg}</b><span>de 100</span></div>
+    <div class="pdf-kpi"><small>Veículos analisados</small><b>${s.total}</b><span>base filtrada</span></div>
+    <div class="pdf-kpi"><small>Críticos + risco</small><b style="color:#ef4444">${s.critical+s.risk}</b><span>${pct(s.critical+s.risk,s.total)}% da frota</span></div>
+    <div class="pdf-kpi"><small>Possível remoção</small><b style="color:#f97316">${s.unplugged}</b><span>com data do evento</span></div>
+  </div>
+  <div class="pdf-section">
+    <div class="pdf-two-col">
+      <div class="pdf-card">
+        <div class="pdf-section-title">Top problemas</div>
+        <div class="pdf-bars">${probs.map(p=>`<div class="row"><div>${p.label}</div><div class="track"><div class="fill" style="width:${Math.round(p.value/max*100)}%;background:${p.color}"></div></div><div>${p.value}</div></div>`).join('')}</div>
+      </div>
+      <div class="pdf-card">
+        <div class="pdf-section-title">Leitura executiva</div>
+        <div class="pdf-summary-box"><b>Banco/Base:</b> ${esc(dbName)}</div>
+        <div class="pdf-summary-box"><b>Condição atual:</b> ${executive(s.avg)}</div>
+        <div class="pdf-summary-box"><b>Prioridade:</b> atuar primeiro em score abaixo de 60, sem dados 7d+, tensão fora e eventos de desconexão.</div>
+        <div class="pdf-summary-box"><b>Faixa saudável:</b> 80–100 • <b>Atenção:</b> 60–79 • <b>Crítico:</b> 40–59 • <b>Risco alto:</b> &lt; 40</div>
+      </div>
+    </div>
+  </div>
+  <div class="pdf-footer"><span>Fleet Health Score • Rotagyn</span><span>Página 2</span></div>
+</div>`;
+
+  // ── PÁGINA 3: RANKING — RETRATO (sem landscape) ──
+  const p3 = `
+<div class="pdf-page">
+  <div class="pdf-topbar"></div>
+  <div class="pdf-brand">
+    <div><h1 class="pdf-title">Ranking técnico da frota</h1><div class="pdf-subtitle">Veículos mais críticos e suas causas principais</div></div>
+    <img class="pdf-logo" src="${LOGO}">
+  </div>
+  <table class="pdf-table">
+    <thead><tr>
+      <th class="c-num">#</th>
+      <th class="c-score">Score</th>
+      <th class="c-plate">Placa</th>
+      <th>Veículo</th>
+      <th class="c-last">Último</th>
+      <th>Problema principal</th>
+      <th>Datas remoção</th>
+      <th class="c-status">Status</th>
+    </tr></thead>
+    <tbody>${top.map((v,i)=>`<tr>
+      <td>${i+1}</td>
+      <td style="font-weight:900;color:${scColor(v.score)}">${v.score}</td>
+      <td style="font-weight:800;font-family:monospace;font-size:10px">${esc(v.placa||'-')}</td>
+      <td style="font-size:10px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.nome||'-')}</td>
+      <td style="font-size:10px">${v.dias>=7?'7d+':v.dias+'d'}</td>
+      <td style="font-size:10px">${esc(problem(v))}</td>
+      <td style="font-size:9px;color:#64748b">${v.unplugDates?esc(v.unplugDates.slice(0,2).join(' | ')):'—'}</td>
+      <td><span class="pdf-badge ${pdfBadge(v.score)}">${scLabel(v.score)}</span></td>
+    </tr>`).join('')}</tbody>
+  </table>
+  <div class="pdf-footer" style="left:42px;right:42px"><span>Fleet Health Score • Ranking Técnico</span><span>Página 3</span></div>
+</div>`;
+
+  // ── PÁGINA 4: PLANO DE AÇÃO ──
+  const p4 = `
+<div class="pdf-page">
+  <div class="pdf-topbar"></div>
+  <div class="pdf-brand">
+    <div><h1 class="pdf-title">Plano de ação recomendado</h1><div class="pdf-subtitle">Prioridades de atuação operacional</div></div>
+    <img class="pdf-logo" src="${LOGO}">
+  </div>
+  <div class="pdf-action"><h4>Prioridade 1 — possíveis remoções/desconexões</h4><p>Validar imediatamente energia, chicote, violação física, alimentação e histórico do dispositivo na data indicada.</p></div>
+  <div class="pdf-action"><h4>Prioridade 2 — veículos sem dados há mais de 7 dias</h4><p>Validar dados móveis, GPS, comunicação e integridade do equipamento.</p></div>
+  <div class="pdf-action"><h4>Prioridade 3 — tensão baixa ou alta recorrente</h4><p>Revisar bateria, alternador, aterramento e qualidade da instalação elétrica.</p></div>
+  <div class="pdf-action"><h4>Prioridade 4 — reboots e falhas GPS reincidentes</h4><p>Abrir análise técnica focando em firmware, posição e estabilidade da alimentação.</p></div>
+  <div class="pdf-section">
+    <div class="pdf-section-title">Encaminhamento sugerido</div>
+    <div class="pdf-summary-box">Exportar o CSV dos críticos e encaminhar para suporte/campo com SLA de tratativa.</div>
+    <div class="pdf-summary-box">Separar revisão por grupo/cliente quando houver volume alto de veículos críticos.</div>
+    <div class="pdf-summary-box">Na próxima evolução, incluir comparativo semanal/mensal e histórico do índice por banco/base.</div>
+  </div>
+  <div class="pdf-footer"><span>Fleet Health Score • Plano de Ação</span><span>Página 4</span></div>
+</div>`;
+
+  $('pdfStage').innerHTML = p1 + p2 + p3 + p4;
+}
+async function downloadPdf(){if(!filtered.length){alertMsg('Carregue a análise antes de baixar o PDF.','err');return}if(!window.html2canvas||!window.jspdf){alertMsg('Bibliotecas de PDF ainda não carregaram. Aguarde alguns segundos e tente novamente.','err');return}dbName=$('reportName').value||dbName||'Rotagyn';status('Gerando PDF...');alertMsg('Gerando PDF premium. Aguarde alguns segundos...');buildPdf();await new Promise(r=>setTimeout(r,200));const {jsPDF}=window.jspdf,pdf=new jsPDF('p','mm','a4'),pages=Array.from(document.querySelectorAll('#pdfStage .pdf-page'));for(let i=0;i<pages.length;i++){const page=pages[i],land=page.classList.contains('landscape'),isDark=page.classList.contains('pdf-cover-page'),canvas=await html2canvas(page,{scale:2,useCORS:true,backgroundColor:isDark?'#050d1f':'#ffffff',logging:false}),img=canvas.toDataURL('image/jpeg',0.96);if(i>0)pdf.addPage('a4',land?'landscape':'portrait');pdf.setPage(i+1);pdf.addImage(img,'JPEG',0,0,land?297:210,land?210:297)}pdf.save('fleet-health-report-'+clean(dbName)+'-'+new Date().toISOString().slice(0,10)+'.pdf');status(filtered.length+' veículos');alertMsg('PDF premium gerado com sucesso.','ok')}
 function exportCSV(){if(!filtered.length)return;const rows=[['nome','placa','score','status','problema_principal','dias_sem_dados','reboots','falhas_gps','tensao_fora']].concat(filtered.map(v=>[v.nome,v.placa,v.score,scLabel(v.score),problem(v),v.dias,v.reboots,v.gps,v.vlow+v.vhigh]));const csv=rows.map(r=>r.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(';')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fleet-health-report-'+clean(dbName)+'.csv';a.click();URL.revokeObjectURL(a.href)}
 function init(api,state){apiRef=api;stateRef=state||{};dbName=getDb(api,stateRef);shell();if(api)load(api);else demo()}
 if(!window.geotab)window.geotab={addin:{}};if(!window.geotab.addin)window.geotab.addin={};window.geotab.addin.fleetHealthScore=function(){return{initialize:function(api,state,cb){try{init(api,state)}catch(e){console.error(e)}if(cb)cb()},focus:function(){},blur:function(){}}};if(!window.location.href.includes('my.geotab'))setTimeout(()=>init(null,{}),50);
