@@ -1,7 +1,7 @@
 {
   "name": "fleetHealthScore",
   "supportEmail": "poze1988@gmail.com",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "isSigned": false,
   "items": [
     {
@@ -14,7 +14,7 @@
     },
     {
       "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/reports/",
-      "path": "ActivityLink/Reports/",
+      "path": "ActivityLink/",
       "menuName": {
         "en": "Fleet Health Reports",
         "pt-BR": "Relatório PDF"
