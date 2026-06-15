@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 170" role="img" aria-label="Rotagyn powered by Geotab">
+  <defs>
+    <style>
+      .dark{fill:#323844;font-family:Arial, Helvetica, sans-serif;font-weight:900;letter-spacing:-8px}
+      .blue{fill:#1199dc;font-family:Arial, Helvetica, sans-serif;font-weight:900;letter-spacing:-8px}
+      .small{fill:#5b6b7d;font-family:Arial, Helvetica, sans-serif;font-size:20px;font-weight:700;letter-spacing:0}
+    </style>
+  </defs>
+  <rect width="620" height="170" fill="none"/>
+  <text x="18" y="98" class="dark" font-size="92">ROT</text>
+  <path d="M246 28 L304 103 L267 103 L257 89 L234 89 L224 103 L190 103 Z" fill="#323844"/>
+  <path d="M246 50 L236 73 H255 Z" fill="#f5f8fc"/>
+  <text x="305" y="98" class="blue" font-size="92">GYN</text>
+  <text x="342" y="126" class="small">Powered by GEOTAB</text>
+</svg>
