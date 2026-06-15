@@ -1,0 +1,40 @@
+/* Fix de sobreposição no ranking técnico */
+.tablewrap{
+  overflow-x:auto !important;
+  overflow-y:hidden;
+}
+.tablewrap table{
+  min-width:1280px !important;
+  table-layout:fixed !important;
+}
+.tablewrap th,
+.tablewrap td{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.tablewrap th:nth-child(1),
+.tablewrap td:nth-child(1){width:44px !important;max-width:44px !important;}
+.tablewrap th:nth-child(2),
+.tablewrap td:nth-child(2){width:70px !important;max-width:70px !important;}
+.tablewrap th:nth-child(3),
+.tablewrap td:nth-child(3){width:190px !important;max-width:190px !important;}
+.tablewrap th:nth-child(4),
+.tablewrap td:nth-child(4){width:360px !important;max-width:360px !important;}
+.tablewrap th:nth-child(5),
+.tablewrap td:nth-child(5){width:95px !important;max-width:95px !important;}
+.tablewrap th:nth-child(6),
+.tablewrap td:nth-child(6){width:230px !important;max-width:230px !important;}
+.tablewrap th:nth-child(7),
+.tablewrap td:nth-child(7){width:230px !important;max-width:230px !important;}
+.tablewrap th:nth-child(8),
+.tablewrap td:nth-child(8){width:120px !important;max-width:120px !important;}
+.tablewrap td:nth-child(3) b,
+.tablewrap td:nth-child(4),
+.tablewrap .vehicleCell{
+  display:block !important;
+  max-width:100% !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
