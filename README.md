@@ -14,6 +14,53 @@ A base ativa considera veículos com dados válidos nos últimos 30 dias. O scor
 
 O painel mostra a saúde geral da frota, os principais problemas encontrados, o ranking dos veículos mais críticos, um mapa técnico e os detalhes que explicam a perda de pontos em cada veículo.
 
+## Add-ins disponíveis no menu
+
+Ao adicionar o conteúdo de `addin-config.json` no MyGeotab, o projeto cria dois itens no menu:
+
+| Menu | URL | Função |
+| --- | --- | --- |
+| Fleet Health Score | `/` | Dashboard técnico principal com KPIs, ranking, filtros, mapa e detalhes por veículo. |
+| Relatório PDF | `/reports/` | Tela interna para gerar relatório premium, exportar CSV e abrir o PDF pronto para salvar/imprimir. |
+
+O segundo item, **Relatório PDF**, foi criado para gerar um relatório interno com visual Rotagyn, usando o nome do banco/base quando disponível. Se o nome do banco não for identificado pelo add-in, o relatório usa **Rotagyn** como fallback.
+
+## Relatório PDF premium
+
+A tela **Relatório PDF** gera uma versão executiva do Fleet Health Score com foco em apresentação interna e tomada de decisão.
+
+O relatório inclui:
+
+- capa premium com logo Rotagyn;
+- nome do banco/base analisado;
+- período de análise: base ativa de 30 dias e score dos últimos 7 dias;
+- Fleet Health Index;
+- total de veículos analisados;
+- veículos críticos e em risco alto;
+- veículos sem dados há 7 dias ou mais;
+- top problemas da frota;
+- leitura executiva automática;
+- ranking técnico dos veículos mais críticos;
+- plano de ação recomendado.
+
+A geração premium abre uma tela de impressão preparada em páginas A4. No navegador, escolha **Salvar como PDF** para baixar o arquivo final.
+
+## Exportação CSV
+
+Além do PDF, a tela de relatório permite exportar um CSV dos veículos filtrados com os campos principais:
+
+- nome;
+- placa;
+- score;
+- status;
+- problema principal;
+- dias sem dados;
+- reboots;
+- falhas GPS;
+- tensão fora do padrão.
+
+Esse CSV é útil para encaminhar a lista de veículos críticos para suporte, campo, implantação ou análise operacional.
+
 ## O que é analisado
 
 O score considera sinais ligados à qualidade da telemetria, como comunicação recente, falhas de GPS, reinicializações do dispositivo, tensão fora do padrão e possíveis falhas críticas do equipamento.
@@ -86,6 +133,12 @@ A URL padrão do projeto é:
 https://brunofelisbino.github.io/fleet-health-score-geotab/
 ```
 
+A URL da tela de relatório é:
+
+```text
+https://brunofelisbino.github.io/fleet-health-score-geotab/reports/
+```
+
 O nome registrado do add-in é:
 
 ```text
@@ -99,6 +152,19 @@ geotab.addin.fleetHealthScore
 ```
 
 Esses nomes precisam permanecer iguais para o MyGeotab carregar o add-in corretamente.
+
+## Como testar depois de adicionar o JSON
+
+Depois de adicionar ou atualizar o `addin-config.json` no MyGeotab:
+
+1. Abra o menu do MyGeotab.
+2. Procure por **Fleet Health Score** para acessar o dashboard principal.
+3. Procure por **Relatório PDF** para acessar a tela de relatórios.
+4. Clique em **Gerar análise**.
+5. Use **Baixar PDF premium** ou **Abrir PDF premium** para gerar a versão final.
+6. Use **Exportar CSV** para baixar a base dos veículos analisados.
+
+Se o MyGeotab continuar exibindo versão antiga, remova e adicione o add-in novamente ou limpe o cache do navegador.
 
 ## Status do projeto
 
