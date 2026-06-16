@@ -1,6 +1,9 @@
 (function(){
 'use strict';
-const DAY=86400000,LOGO='../assets/rotagyn-logo.svg';
+
+// Logotipo embutido em Base64 para evitar latência de rede e problemas de CORS
+const LOGO='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MjAgMTcwIj48cmVjdCB3aWR0aD0iNjIwIiBoZWlnaHQ9IjE3MCIgcng9IjE4IiBmaWxsPSJ3aGl0ZSIvPjxnIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIj48dGV4dCB4PSIxOCIgeT0iOTgiIGZvbnQtc2l6ZT0iOTIiIGZpbGw9IiMzMjM4NDQiIGxldHRlci1zcGFjaW5nPSItOCI+Uk9UPC90ZXh0PjxwYXRoIGQ9Ik0yNDYgMjggTDMwNCAxMDMgTDI2NyAxMDMgTDI1NyA4OSBMMjM0IDg5IEwyMjQgMTAzIEwxOTAgMTAzIFoiIGZpbGw9IiMzMjM4NDQiLz48cGF0aCBkPSJNMjQ2IDUwIEwyMzYgNzMgSDI1NSBaIiBmaWxsPSIjZmZmZmZmIi8+PHRleHQgeD0iMzA1IiB5PSI5OCIgZm9udC1zaXplPSI5MiIgZmlsbD0iIzExNzhiZSIgbGV0dGVyLXNwYWNpbmc9Ii04Ij5HWU48L3RleHQ+PHRleHQgeD0iMzUwIiB5PSIxMjYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM1YjZiN2QiIGZvbnQtd2VpZ2h0PSI3MDAiPlBvd2VyZWQgYnk8L3RleHQ+PHRleHQgeD0iNDIwIiB5PSIxMjYiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiMxZTRmOGYiIGZvbnQtd2VpZ2h0PSI4MDAiPkNoZWNrVE9UQUw8L3RleHQ+PC9nPjwvc3ZnPg==';
+const DAY=86400000;
 let apiRef=null,stateRef={},vehicles=[],filtered=[],dbName='Rotagyn';
 const $=id=>document.getElementById(id);
 const pct=(a,b)=>b?Math.round((a/b)*100):0;
@@ -18,16 +21,43 @@ function eventDate(r){return r.dateTime||r.activeFrom||r.fromDate||r.startTime||
 function fmtDate(d){try{return new Date(d).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}catch(e){return String(d||'')}}
 function uniqDates(list){const seen={};return list.filter(Boolean).sort((a,b)=>new Date(b)-new Date(a)).filter(d=>{let k;try{k=new Date(d).toISOString()}catch(e){k=String(d)}if(seen[k])return false;seen[k]=true;return true})}
 function unplug(r){const n=dname(r).toLowerCase();return n.includes('diagnosticdevicehasbeenunpluggedid')||n.includes('devicehasbeenunplugged')||n.includes('unplugged')||n.includes('desconectado')||n.includes('removido')||n.includes('remoção')||n.includes('remocao')}
-function problem(v){if(v.unplugged>0)return'Possível remoção não autorizada';if(v.dias>=7)return'Sem dados '+v.dias+' dias';if(v.vlow>0)return'Tensão baixa';if(v.vhigh>0)return'Tensão alta';if(v.reboots>2)return'Reboot excessivo';if(v.gps>0)return'Falha GPS';if(v.faults>0)return'Falha device';return'Sem alerta crítico'}
+function problem(v){let m=v.unplugged>0?'Possível remoção não autorizada':v.dias>=7?'Sem dados '+v.dias+' dias':v.vlow>0?'Tensão baixa':v.vhigh>0?'Tensão alta':v.reboots>2?'Reboot excessivo':v.gps>0?'Falha GPS':v.faults>0?'Falha device':'Sem alerta crítico';
+ if(v.minV!==null&&(v.vlow>0||v.vhigh>0))m+=` (${v.minV.toFixed(1)}V - ${v.maxV.toFixed(1)}V)`;return m}
 function executive(avg){if(avg>=80)return'A frota apresenta um cenário saudável, com baixa incidência de falhas críticas e boa estabilidade operacional.';if(avg>=60)return'A frota está em atenção. Existem indícios claros de degradação operacional que exigem ação preventiva.';return'A frota está em estado crítico. É necessário atuar imediatamente nos veículos com maior risco operacional.'}
+
+// Configuração de pesos para facilitar ajustes futuros
+const SCORE_WEIGHTS = {
+  COMMUNICATION: { max: 30, steps: [ { d: 1, p: 30 }, { d: 2, p: 22 }, { d: 4, p: 12 }, { d: 7, p: 5 } ] },
+  REBOOTS: { max: 20, penalty: [ { c: 0, p: 20 }, { c: 2, p: 15 }, { c: 5, p: 10 }, { c: 10, p: 5 } ] },
+  REBOOTS_24V: { max: 20, penalty: [ { c: 0, p: 20 }, { c: 1, p: 10 }, { c: 2, p: 0 } ] },
+  GPS: { max: 15, penalty: [ { c: 0, p: 15 }, { c: 3, p: 11 }, { c: 10, p: 7 } ] },
+  VOLTAGE: { max: 20, penalty: [ { c: 0, p: 20 }, { c: 5, p: 15 }, { c: 20, p: 9 } ] },
+  VOLTAGE_24V: { max: 20, penalty: [ { c: 0, p: 20 }, { c: 2, p: 8 }, { c: 5, p: 0 } ] },
+  FAULTS: { max: 15, penalty: [ { c: 0, p: 15 }, { c: 2, p: 10 }, { c: 6, p: 5 } ] }
+};
+
 function analyze(records,v){
  const a={reboots:0,gps:0,vlow:0,vhigh:0,faults:0,unplugged:0,minV:null,maxV:null,voltageTotal:0,removalDates:[]};
- records.forEach(r=>{const n=dname(r),val=Number(r.data);if(unplug(r)){a.unplugged++;const d=eventDate(r);if(d)a.removalDates.push(d)}if(has(n,['reboot','restart']))a.reboots++;if(has(n,['gps invalid','gps failure','no gps','gps']))a.gps++;if(has(n,['device fault','internal device','malfunction']))a.faults++;if(has(n,['external voltage','device voltage','battery voltage','voltage'])&&!isNaN(val)){a.voltageTotal++;a.minV=a.minV==null?val:Math.min(a.minV,val);a.maxV=a.maxV==null?val:Math.max(a.maxV,val);if(val<20){if(val<11)a.vlow++;if(val>14.8)a.vhigh++}else{if(val<22)a.vlow++;if(val>29)a.vhigh++}}});
+ records.forEach(r=>{const n=dname(r),val=Number(r.data);if(unplug(r)){a.unplugged++;const d=eventDate(r);if(d)a.removalDates.push(d)}if(has(n,['reboot','restart']))a.reboots++;if(has(n,['gps invalid','gps failure','no gps','gps']))a.gps++;if(has(n,['device fault','internal device','malfunction']))a.faults++;if(has(n,['external voltage','device voltage','battery voltage','voltage'])&&!isNaN(val)){a.voltageTotal++;a.minV=a.minV==null?val:Math.min(a.minV,val);a.maxV=a.maxV==null?val:Math.max(a.maxV,val);if(val<20){if(val<9)a.vlow++;if(val>14)a.vhigh++}else{if(val<18)a.vlow++;if(val>28)a.vhigh++}}});
+ a.is24v = a.maxV > 18;
  let p=0,ds=v.lastDate?Math.floor((Date.now()-new Date(v.lastDate).getTime())/DAY):999;
- p+=ds<1?30:ds<2?22:ds<4?12:ds<7?5:0;
- p+=a.reboots===0?20:a.reboots<=2?15:a.reboots<=5?10:a.reboots<=10?5:0;
- p+=a.gps===0?15:a.gps<=3?11:a.gps<=10?7:0;
- const vb=a.vlow+a.vhigh;p+=vb===0?20:vb<=5?15:vb<=20?9:0;
+ 
+ // Aplicação dinâmica de scores baseada na configuração
+ const comm = SCORE_WEIGHTS.COMMUNICATION.steps.find(s => ds < s.d);
+ p += comm ? comm.p : 0;
+
+ const rebRule = a.is24v ? SCORE_WEIGHTS.REBOOTS_24V : SCORE_WEIGHTS.REBOOTS;
+ const reb = rebRule.penalty.find(s => a.reboots <= s.c);
+ p += reb ? reb.p : 0;
+
+ const gpsPenalty = SCORE_WEIGHTS.GPS.penalty.find(s => a.gps <= s.c);
+ p += gpsPenalty ? gpsPenalty.p : 0;
+
+ const vb=a.vlow+a.vhigh;
+ const vRule = a.is24v ? SCORE_WEIGHTS.VOLTAGE_24V : SCORE_WEIGHTS.VOLTAGE;
+ const vPenalty = vRule.penalty.find(s => vb <= s.c);
+ p += vPenalty ? vPenalty.p : 0;
+
  p+=a.faults===0?15:a.faults<=2?10:a.faults<=6?5:0;
  if(a.unplugged>0)p=Math.min(p,25); if(ds>=7)p=Math.min(p,45);
  a.score=Math.max(0,Math.round(p));a.dias=ds;a.removalDates=uniqDates(a.removalDates);a.removalDatesText=a.removalDates.length?a.removalDates.slice(0,3).map(fmtDate).join(' | '):'-';a.lastRemovalDate=a.removalDates.length?fmtDate(a.removalDates[0]):'-';return a;
@@ -38,7 +68,7 @@ function getDb(api,state){return(state&&(state.database||state.databaseName))||(
 function status(t){const e=$('statusBox');if(e)e.textContent=t}
 function alertMsg(t,cls){const e=$('alertBox');if(!e)return;e.className='alert '+(cls||'');e.innerHTML=t||''}
 function shell(){
- $('app').innerHTML=`<div class="head"><div class="brand"><img class="logo" src="${LOGO}"><div><div class="title">Fleet Health Reports</div><div class="sub">RELATÓRIO PDF PREMIUM • GEOTAB ADD-IN</div></div></div><div class="pill" id="statusBox">Conectando...</div></div><div class="bar"><button class="primary" id="loadBtn">Gerar análise</button><button class="soft" id="pdfBtn">Baixar PDF premium</button><button id="csvBtn">Exportar CSV</button><button id="demoBtn">Dados simulados</button><input id="reportName" placeholder="Nome do banco/base" value="${esc(dbName)}"><select id="scoreFilter"><option value="">Todos os veículos</option><option value="critical">Críticos + risco alto</option><option value="nodata">Sem dados 7d+</option><option value="voltage">Tensão fora</option><option value="removal">Possível remoção</option></select></div><div class="info"><span>Base ativa: <b>30 dias</b></span><span>Score: <b>7 dias</b></span><span>Banco/Base: <b id="dbBox">${esc(dbName)}</b></span><span>Veículos no relatório: <b id="countBox">0</b></span></div><div id="alertBox" class="alert">Use dentro do MyGeotab para carregar dados reais. O PDF usa o nome do banco/base ou Rotagyn como fallback.</div><div id="kpis" class="grid"></div><div class="cols"><div class="panel"><div class="pt">Top problemas</div><div id="problems"></div></div><div class="panel"><div class="pt">Leitura executiva</div><div id="exec" class="exec"></div></div></div><div class="panel"><div class="pt">Ranking técnico da frota</div><div id="table" class="tablewrap"></div></div>`;
+ $('app').innerHTML=`<div class="head"><div class="brand"><img class="logo" src="${LOGO}"><div><div class="title">Fleet Health Reports</div><div class="sub">RELATÓRIO PDF PREMIUM • GEOTAB ADD-IN</div></div></div><div class="pill" id="statusBox">Conectando...</div></div><div class="bar"><button class="primary" id="loadBtn">Gerar análise</button><button class="soft" id="pdfBtn">Baixar PDF premium</button><button id="csvBtn">Exportar CSV</button><button id="demoBtn">Dados simulados</button><input id="reportName" placeholder="Nome do banco/base" value="${esc(dbName)}"><select id="scoreFilter"><option value="">Todos os veículos</option><option value="critical">Críticos + risco alto</option><option value="nodata">Sem dados 7d+</option><option value="voltage">Tensão fora</option><option value="removal">Possível remoção</option><option value="v24">Veículos 24V (Caminhões)</option></select></div><div class="info"><span>Base ativa: <b>30 dias</b></span><span>Score: <b>7 dias</b></span><span>Banco/Base: <b id="dbBox">${esc(dbName)}</b></span><span>Veículos no relatório: <b id="countBox">0</b></span></div><div id="alertBox" class="alert">Use dentro do MyGeotab para carregar dados reais. O PDF usa o nome do banco/base ou Rotagyn como fallback.</div><div id="kpis" class="grid"></div><div class="cols"><div class="panel"><div class="pt">Top problemas</div><div id="problems"></div></div><div class="panel"><div class="pt">Leitura executiva</div><div id="exec" class="exec"></div></div></div><div class="panel"><div class="pt">Ranking técnico da frota</div><div id="table" class="tablewrap"></div></div>`;
  $('loadBtn').onclick=()=>load(apiRef);$('pdfBtn').onclick=downloadPdf;$('csvBtn').onclick=exportCSV;$('demoBtn').onclick=demo;$('scoreFilter').onchange=apply;$('reportName').oninput=()=>{dbName=$('reportName').value||'Rotagyn';localStorage.setItem('fleetReportName',dbName);render()};
 }
 async function load(api){
@@ -47,7 +77,7 @@ async function load(api){
  const from30=new Date(Date.now()-30*DAY),from7=new Date(Date.now()-7*DAY);
  try{const devs=await apiGet(api,'Device',{isArchived:false}),dm={};devs.forEach(d=>{if(!d.name||d.isActive===false)return;if(d.toDate&&new Date(d.toDate)<new Date())return;dm[d.id]={nome:d.name,placa:d.licensePlate||d.name,grupos:(d.groups||[]).map(g=>g.id)}});const dsi=await apiGet(api,'DeviceStatusInfo',{}),active={};dsi.forEach(s=>{const id=s.device&&s.device.id;if(!id||!dm[id]||!s.dateTime||new Date(s.dateTime)<from30||s.latitude==null||s.longitude==null)return;if(!active[id]||new Date(s.dateTime)>new Date(active[id].dateTime))active[id]=s});let st=[],faults=[];try{st=await apiGet(api,'StatusData',{fromDate:from7.toISOString(),toDate:new Date().toISOString()})}catch(e){}try{faults=await apiGet(api,'FaultData',{fromDate:from30.toISOString(),toDate:new Date().toISOString()})}catch(e){}const by={};st.concat(faults).forEach(r=>{const id=r.device&&r.device.id;if(id)(by[id]||(by[id]=[])).push(r)});vehicles=Object.keys(active).map(id=>{const s=active[id],i=dm[id],base={id,nome:i.nome,placa:i.placa,grupos:i.grupos,lastDate:s.dateTime,online:!!s.isDeviceCommunicating};return Object.assign(base,analyze(by[id]||[],base))}).sort((a,b)=>a.score-b.score);filtered=[...vehicles];status(vehicles.length+' veículos');alertMsg('Análise concluída. PDF premium pronto para baixar.','ok');render()}catch(e){console.error(e);status('Erro');alertMsg('Erro ao carregar dados: '+(e.message||e),'err')}
 }
-function apply(){const f=$('scoreFilter').value;filtered=vehicles.filter(v=>f==='critical'?v.score<60:f==='nodata'?v.dias>=7:f==='voltage'?(v.vlow+v.vhigh)>0:f==='removal'?v.unplugged>0:true);render()}
+function apply(){const f=$('scoreFilter').value;filtered=vehicles.filter(v=>f==='critical'?v.score<60:f==='nodata'?v.dias>=7:f==='voltage'?(v.vlow+v.vhigh)>0:f==='removal'?v.unplugged>0:f==='v24'?v.is24v:true);render()}
 function render(){if(!$('kpis'))return;dbName=$('reportName')&&$('reportName').value?$('reportName').value:'Rotagyn';const s=summary(filtered);$('dbBox').textContent=dbName;$('countBox').textContent=s.total.toLocaleString('pt-BR');$('kpis').innerHTML=[['Fleet Health Index',s.avg,'de 100','var(--blue)'],['Veículos analisados',s.total,'base filtrada','var(--txt)'],['Críticos',s.critical+s.risk,pct(s.critical+s.risk,s.total)+'% da frota','var(--red)'],['Possível remoção',s.unplugged,'com data do evento','var(--red)'],['Sem dados 7d+',s.nodata,'prioridade operacional','var(--orange)']].map(c=>`<div class="kpi"><span>${c[0]}</span><b style="color:${c[3]}">${c[1]}</b><small>${c[2]}</small></div>`).join('');const probs=topProblems(filtered),max=Math.max(1,...probs.map(p=>p.value));$('problems').innerHTML=probs.map(p=>`<div class="barrow"><b>${p.label}</b><div class="track"><div class="fill" style="width:${Math.round(p.value/max*100)}%;background:${p.color}"></div></div><span>${p.value}</span></div>`).join('');$('exec').innerHTML=`<div><b>Banco/Base:</b> ${esc(dbName)}</div><div><b>Leitura:</b> ${executive(s.avg)}</div><div><b>Prioridade:</b> atuar primeiro em score abaixo de 60, possíveis remoções, sem dados 7d+ e tensão fora.</div><div><b>Possíveis remoções:</b> ${s.unplugged} veículo(s) com data do evento no ranking e no CSV.</div>`;$('table').innerHTML='<table><thead><tr><th>#</th><th>Score</th><th>Placa</th><th>Veículo</th><th>Último dado</th><th>Problema principal</th><th>Datas possível remoção</th><th>Status</th></tr></thead><tbody>'+filtered.slice(0,80).map((v,i)=>`<tr><td>${i+1}</td><td><b style="color:${scVar(v.score)}">${v.score}</b></td><td><b style="font-family:var(--mono);color:var(--txt)">${esc(v.placa||'-')}</b></td><td class="vehicleCell" title="${esc(v.nome)}">${esc(v.nome)}</td><td>${v.dias>=7?'7d+':v.dias+'d'}</td><td>${esc(problem(v))}</td><td>${esc(v.removalDatesText||'-')}</td><td><span class="badge ${scClass(v.score)}">${scLabel(v.score)}</span></td></tr>`).join('')+'</tbody></table>'}
 function demo(){dbName=$('reportName').value||'Rotagyn';vehicles=[['UDV2F12','UDV2F12 | CITROEN BASALT',25,0,0,0,0,0,0,1,'15/06/2026 08:31'],['SRG8B64','BYD SEAL | SRG8B64 | TESTE GO9 4G',25,0,0,0,0,0,0,1,'14/06/2026 17:12'],['SDJ0J48','SDJ0J48 | Fiat Cronos',25,11,0,0,0,0,0,1,'12/06/2026 09:02'],['Painel rotagyn','Painel rotagyn',25,7,0,0,0,0,0,1,'10/06/2026 15:44'],['Teste GO Focus','Teste GO Focus',45,11,0,0,0,0,0,0,'-'],['SDL1B41','SDL1B41 | VW Virtus | TESTE GO9 4G',45,28,0,0,0,0,0,0,'-'],['FOM4A84','FOM4A84 | Jeep Commander',75,0,0,0,1,0,0,0,'-'],['GAX3B67','AUDI - NSA',75,0,0,0,1,0,0,0,'-'],['DBB0001','DBB0001 TESTE',82,2,0,0,0,0,0,0,'-'],['TFR859','TFR859 | ROTAVERDE | TESTE GO9 4G',90,0,3,0,0,0,0,0,'-'],['TFP9I32','TFP9I32 | ROTAVERDE | TESTE GO9 4G',95,0,0,0,0,0,0,0,'-']].map((r,i)=>({id:'d'+i,placa:r[0],nome:r[1],score:r[2],dias:r[3],reboots:r[4],gps:r[5],vlow:r[6],vhigh:r[7],faults:r[8],unplugged:r[9],removalDatesText:r[10],lastRemovalDate:r[10]}));filtered=[...vehicles];status('Demo');alertMsg('Dados simulados carregados para prévia do PDF premium.','ok');render()}
 
@@ -55,7 +85,7 @@ function buildPdf(){
   const s=summary(filtered),
         probs=topProblems(filtered),
         max=Math.max(1,...probs.map(p=>p.value)),
-        top=[...filtered].sort((a,b)=>a.score-b.score).slice(0,20);
+        top=[...filtered].sort((a,b)=>a.score-b.score);
 
   // Cor dinâmica do Health Index baseada no score
   const scoreColor = scColor(s.avg);
@@ -129,7 +159,7 @@ function buildPdf(){
       </div>
     </div>
   </div>
-  <div class="pdf-footer"><span>Fleet Health Score • ${esc(dbName)}</span><span>Página 1</span></div>
+  <div class="pdf-footer"><span>Fleet Health Score • ${esc(dbName)}</span><span class="page-number"></span></div>
 </div>`;
 
   // ── PÁGINA 2: RESUMO EXECUTIVO ──
@@ -161,12 +191,12 @@ function buildPdf(){
       </div>
     </div>
   </div>
-  <div class="pdf-footer"><span>Fleet Health Score • Rotagyn</span><span>Página 2</span></div>
+  <div class="pdf-footer"><span>Fleet Health Score • Rotagyn</span><span class="page-number"></span></div>
 </div>`;
 
   // ── PÁGINA 3: RANKING — RETRATO (sem landscape) ──
   const p3 = `
-<div class="pdf-page">
+<div class="pdf-page pdf-ranking-page">
   <div class="pdf-topbar"></div>
   <div class="pdf-brand">
     <div><h1 class="pdf-title">Ranking técnico da frota</h1><div class="pdf-subtitle">Veículos mais críticos e suas causas principais</div></div>
@@ -183,7 +213,7 @@ function buildPdf(){
       <th>Datas remoção</th>
       <th class="c-status">Status</th>
     </tr></thead>
-    <tbody>${top.map((v,i)=>`<tr>
+    <tbody>${top.map((v,i)=>`<tr class="${v.score < 40 ? 'pdf-row-risk' : ''}">
       <td>${i+1}</td>
       <td style="font-weight:900;color:${scColor(v.score)}">${v.score}</td>
       <td style="font-weight:800;font-family:monospace;font-size:10px">${esc(v.placa||'-')}</td>
@@ -191,10 +221,16 @@ function buildPdf(){
       <td style="font-size:10px">${v.dias>=7?'7d+':v.dias+'d'}</td>
       <td style="font-size:10px">${esc(problem(v))}</td>
       <td style="font-size:9px;color:#64748b">${esc(v.removalDatesText||'-')}</td>
-      <td><span class="pdf-badge ${pdfBadge(v.score)}">${scLabel(v.score)}</span></td>
+      <td class="c-status"><span class="pdf-badge ${pdfBadge(v.score)}">${scLabel(v.score)}</span></td>
     </tr>`).join('')}</tbody>
   </table>
-  <div class="pdf-footer" style="left:42px;right:42px"><span>Fleet Health Score • Ranking Técnico</span><span>Página 3</span></div>
+  <div class="pdf-footer" style="left:42px;right:42px">
+    <div class="pdf-legend">
+      <span class="pdf-legend-item"><i class="risk"></i> Score crítico (&lt; 40)</span>
+      <span>Fleet Health Score • Ranking Técnico</span>
+    </div>
+    <span class="page-number"></span>
+  </div>
 </div>`;
 
   // ── PÁGINA 4: PLANO DE AÇÃO ──
@@ -215,12 +251,34 @@ function buildPdf(){
     <div class="pdf-summary-box">Separar revisão por grupo/cliente quando houver volume alto de veículos críticos.</div>
     <div class="pdf-summary-box">Na próxima evolução, incluir comparativo semanal/mensal e histórico do índice por banco/base.</div>
   </div>
-  <div class="pdf-footer"><span>Fleet Health Score • Plano de Ação</span><span>Página 4</span></div>
+  <div class="pdf-footer"><span>Fleet Health Score • Plano de Ação</span><span class="page-number"></span></div>
 </div>`;
 
   $('pdfStage').innerHTML = p1 + p2 + p3 + p4;
 }
-async function downloadPdf(){if(!filtered.length){alertMsg('Carregue a análise antes de baixar o PDF.','err');return}if(!window.html2canvas||!window.jspdf){alertMsg('Bibliotecas de PDF ainda não carregaram. Aguarde alguns segundos e tente novamente.','err');return}dbName=$('reportName').value||dbName||'Rotagyn';status('Gerando PDF...');alertMsg('Gerando PDF premium. Aguarde alguns segundos...');buildPdf();await new Promise(r=>setTimeout(r,200));const {jsPDF}=window.jspdf,pdf=new jsPDF('p','mm','a4'),pages=Array.from(document.querySelectorAll('#pdfStage .pdf-page'));for(let i=0;i<pages.length;i++){const page=pages[i],land=page.classList.contains('landscape'),isDark=page.classList.contains('pdf-cover-page'),canvas=await html2canvas(page,{scale:2,useCORS:true,backgroundColor:isDark?'#050d1f':'#ffffff',logging:false}),img=canvas.toDataURL('image/jpeg',0.96);if(i>0)pdf.addPage('a4',land?'landscape':'portrait');pdf.setPage(i+1);pdf.addImage(img,'JPEG',0,0,land?297:210,land?210:297)}pdf.save('fleet-health-report-'+clean(dbName)+'-'+new Date().toISOString().slice(0,10)+'.pdf');status(filtered.length+' veículos');alertMsg('PDF premium gerado com sucesso.','ok')}
+async function downloadPdf(){
+  if(!filtered.length){alertMsg('Carregue a análise antes de baixar o PDF.','err');return}
+  dbName=$('reportName').value||dbName||'Rotagyn';
+  status('Preparando impressão...');
+  alertMsg('O relatório será aberto na tela de impressão. Escolha "Salvar como PDF".','ok');
+  
+  buildPdf(); // Monta o HTML dentro do #pdfStage
+
+  // Define o total de páginas para o CSS usar
+  const totalPages = $('pdfStage').querySelectorAll('.pdf-page').length;
+  $('pdfStage').style.setProperty('--total-pages', `"${totalPages}"`);
+
+  // Mesmo com o logo em Base64, mantemos a verificação para outras possíveis imagens dinâmicas
+  const imgs = Array.from($('pdfStage').querySelectorAll('img'));
+  
+  await Promise.all(imgs.map(i => i.complete ? Promise.resolve() : new Promise(res => { i.onload = res; i.onerror = res; })));
+
+  // Como o logo é Base64, o processamento é quase instantâneo.
+  await new Promise(r => setTimeout(r, 150));
+
+  window.print();
+  status(filtered.length+' veículos');
+}
 function exportCSV(){if(!filtered.length)return;const rows=[['nome','placa','score','status','problema_principal','possivel_remocao_nao_autorizada','datas_possivel_remocao','dias_sem_dados','reboots','falhas_gps','tensao_fora']].concat(filtered.map(v=>[v.nome,v.placa,v.score,scLabel(v.score),problem(v),v.unplugged>0?'sim':'nao',v.removalDatesText||'-',v.dias,v.reboots,v.gps,v.vlow+v.vhigh]));const csv=rows.map(r=>r.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(';')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fleet-health-report-'+clean(dbName)+'.csv';a.click();URL.revokeObjectURL(a.href)}
 function init(api,state){apiRef=api;stateRef=state||{};dbName=getDb(api,stateRef);shell();if(api)load(api);else demo()}
 if(!window.geotab)window.geotab={addin:{}};if(!window.geotab.addin)window.geotab.addin={};window.geotab.addin.fleetHealthScore=function(){return{initialize:function(api,state,cb){try{init(api,state)}catch(e){console.error(e)}if(cb)cb()},focus:function(){},blur:function(){}}};if(!window.location.href.includes('my.geotab'))setTimeout(()=>init(null,{}),50);

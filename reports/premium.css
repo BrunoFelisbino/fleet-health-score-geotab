@@ -1,3 +1,50 @@
+@media print {
+  .pdf-table {
+    page-break-inside: auto;
+  }
+  .pdf-table thead {
+    display: table-header-group; /* Força a repetição em cada página */
+  }
+  .pdf-table tr {
+    page-break-inside: avoid; /* Evita que uma linha seja cortada ao meio */
+    page-break-after: auto;
+  }
+  .pdf-ranking-page {
+    height: auto !important;
+    min-height: 297mm;
+    overflow: visible !important;
+    display: block !important;
+  }
+  /* Reduz o tamanho da fonte e o padding da tabela para caber mais veículos por página */
+  .pdf-table th, .pdf-table td {
+    font-size: 8.5px !important; /* Fonte menor para aumentar densidade */
+    padding: 3px 2px !important;  /* Espaçamento vertical reduzido */
+  }
+  .pdf-table .pdf-badge {
+    font-size: 7.5px !important; /* Ajuste proporcional para os badges de status */
+  }
+  /* Destaque para veículos com score muito baixo (Risco Alto) */
+  .pdf-row-risk {
+    background-color: rgba(239, 68, 68, 0.07) !important;
+    -webkit-print-color-adjust: exact;
+  }
+  /* Remove a coluna de Status para ganhar espaço horizontal */
+  .c-status {
+    display: none !important;
+  }
+  /* Estilo da Legenda */
+  .pdf-legend {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  .pdf-legend-item i {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+  }
+  .pdf-legend-item i.risk { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; }
+}
 *{box-sizing:border-box}
 :root{--bg:#f5f8fc;--card:#fff;--txt:#172033;--mut:#64748b;--bd:#e5eaf1;--blue:#0ea5e9;--blue2:#0369a1;--green:#10b981;--yellow:#f59e0b;--orange:#f97316;--red:#ef4444;--shadow:0 12px 28px rgba(15,23,42,.06);--mono:Consolas,monospace}
 html,body{margin:0;padding:0}
