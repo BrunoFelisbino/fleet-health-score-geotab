@@ -1,1 +1,1 @@
-import './premium.js?v=0.5.6';
+import './premium.js?v=0.5.8';

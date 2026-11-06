@@ -2,7 +2,7 @@
 'use strict';
 
 // Logotipo embutido em Base64 para evitar latência de rede e problemas de CORS
-const LOGO='http://localhost:8080/img/logos/3.png';
+const LOGO='../assets/maas-logo.png';
 const DAY=86400000;
 let apiRef=null,stateRef={},vehicles=[],filtered=[],dbName='Rotagyn',groupDesc={};
 const FILTER_KEY='fleetHealthReportFilters';
