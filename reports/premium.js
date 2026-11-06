@@ -92,6 +92,15 @@ function buildPdf(){
         max=Math.max(1,...probs.map(p=>p.value)),
         top=[...filtered].sort((a,b)=>a.score-b.score);
 
+  const scoreEl=$('scoreFilter'), groupEl=$('groupFilter');
+  const activeFilters=[];
+  if(scoreEl&&scoreEl.value) activeFilters.push('Status: '+((scoreEl.selectedOptions&&scoreEl.selectedOptions[0]&&scoreEl.selectedOptions[0].textContent)||scoreEl.value));
+  if(groupEl&&groupEl.value) activeFilters.push('Grupo: '+((groupEl.selectedOptions&&groupEl.selectedOptions[0]&&groupEl.selectedOptions[0].textContent)||groupEl.value));
+  const hasFilters=activeFilters.length>0;
+  const filtersSummary=hasFilters?`Filtros aplicados: ${esc(activeFilters.join(' • '))}. Os dados deste relatório refletem somente o filtro, não a frota total.`:'';
+  const filtersNote=hasFilters?`<p>${filtersSummary}</p>`:'';
+  const filtersBox=hasFilters?`<div class="pdf-summary-box">${filtersSummary}</div>`:'';
+
   // Cor dinâmica do Health Index baseada no score
   const scoreColor = scColor(s.avg);
   // Gradiente do anel baseado no score
@@ -146,7 +155,8 @@ function buildPdf(){
       <div class="pcp-exec-header"><span class="pcp-shield">🛡</span> Resumo Executivo</div>
       <div class="pcp-exec-rule"></div>
       <p>Este relatório apresenta uma visão consolidada da saúde técnica da frota com base nas análises mais recentes dos veículos monitorados.</p>
-      <p>As possíveis remoções são identificadas por eventos de desconexão/unplugged e exibem a data do evento no ranking e no CSV.</p>
+      <p>As possíveis remoções são identificadas por eventos de desconexão ou unplugged e exibem a data do evento no ranking e no CSV.</p>
+      ${filtersNote}
       <div class="pcp-kpi-row">
         <div class="pcp-kpi-item"><span class="pcp-kpi-icon">🚛</span><b>${s.total}</b><small>Veículos<br>monitorados</small></div>
         <div class="pcp-kpi-item warn"><span class="pcp-kpi-icon">⚠</span><b>${s.critical+s.risk}</b><small>Veículos com<br>alertas</small></div>
@@ -192,7 +202,8 @@ function buildPdf(){
         <div class="pdf-summary-box"><b>Banco/Base:</b> ${esc(dbName)}</div>
         <div class="pdf-summary-box"><b>Condição atual:</b> ${executive(s.avg)}</div>
         <div class="pdf-summary-box"><b>Prioridade:</b> atuar primeiro em score abaixo de 60, sem dados 7d+, tensão fora e eventos de desconexão.</div>
-        <div class="pdf-summary-box"><b>Faixa saudável:</b> 80–100 • <b>Atenção:</b> 60–79 • <b>Crítico:</b> 40–59 • <b>Risco alto:</b> &lt; 40</div>
+        ${filtersBox}
+        <div class="pdf-summary-box"><b>Faixa saudável:</b> 80–100 • <b>Atenção:</b> 60–79 • <b>Crítico:</b> 40–59 • <b>Risco alto:</b> abaixo de 40</div>
       </div>
     </div>
   </div>
@@ -229,7 +240,7 @@ function buildPdf(){
       <td class="c-status"><span class="pdf-badge ${pdfBadge(v.score)}">${scLabel(v.score)}</span></td>
     </tr>`).join('')}</tbody>
   </table>
-  <div class="pdf-footer" style="left:42px;right:42px">
+  <div class="pdf-footer" style="left:54px;right:54px">
     <div class="pdf-legend">
       <span class="pdf-legend-item"><i class="risk"></i> Score crítico (&lt; 40)</span>
       <span>Fleet Health Score • Ranking Técnico</span>
@@ -246,15 +257,13 @@ function buildPdf(){
     <div><h1 class="pdf-title">Plano de ação recomendado</h1><div class="pdf-subtitle">Prioridades de atuação operacional</div></div>
     <img class="pdf-logo" src="${LOGO}">
   </div>
-  <div class="pdf-action"><h4>Prioridade 1 — possíveis remoções/desconexões</h4><p>Validar imediatamente energia, chicote, violação física, alimentação e histórico do dispositivo na data indicada.</p></div>
-  <div class="pdf-action"><h4>Prioridade 2 — offline / sem comunicação (7d+ e 30d+)</h4><p>Veículos 7d+ estão sem comunicação; 30d+ estão fora da base ativa. Validar chip/dados móveis, GPS, alimentação, remoção e integridade do equipamento.</p></div>
+  <div class="pdf-action"><h4>Prioridade 1 — possíveis remoções e desconexões</h4><p>Validar imediatamente energia, chicote, violação física, alimentação e histórico do dispositivo na data indicada. Pedir para verificar se o lacre ainda se encontra entre o dispositivo e o chicote, e entre o chicote e a tomada OBD 2.</p></div>
+  <div class="pdf-action"><h4>Prioridade 2 — offline e sem comunicação</h4><p>Veículos sem comunicação há 7 dias ou mais estão fora da operação de dados. Veículos sem status há 30 dias ou mais estão fora da base ativa. Verificar se o veículo teve atividade depois da data da última comunicação. Se sim, agendar o quanto antes uma verificação física do dispositivo.</p></div>
   <div class="pdf-action"><h4>Prioridade 3 — tensão baixa ou alta recorrente</h4><p>Revisar bateria, alternador, aterramento e qualidade da instalação elétrica.</p></div>
-  <div class="pdf-action"><h4>Prioridade 4 — reboots e falhas GPS reincidentes</h4><p>Abrir análise técnica focando em firmware, posição e estabilidade da alimentação.</p></div>
+  <div class="pdf-action"><h4>Prioridade 4 — reboots e falhas de GPS reincidentes</h4><p>Abrir análise técnica focando em firmware, posição e estabilidade da alimentação. Contatar o suporte e pedir uma análise, pois não é normal esse volume de reboots, a não ser que seja um caminhão que precise de desligar a chave geral. Se for o caso, desconsiderar essa ação.</p></div>
   <div class="pdf-section">
-    <div class="pdf-section-title">Encaminhamento sugerido</div>
-    <div class="pdf-summary-box">Exportar o CSV dos críticos e encaminhar para suporte/campo com SLA de tratativa.</div>
-    <div class="pdf-summary-box">Separar revisão por grupo/cliente quando houver volume alto de veículos críticos.</div>
-    <div class="pdf-summary-box">Na próxima evolução, incluir comparativo semanal/mensal e histórico do índice por banco/base.</div>
+    <div class="pdf-section-title">Síntese</div>
+    <div class="pdf-summary-box">Telemetria só gera confiança quando cada dado vira decisão no veículo e na operação.</div>
   </div>
   <div class="pdf-footer"><span>Fleet Health Score • Plano de Ação</span><span class="page-number"></span></div>
 </div>`;
