@@ -14,6 +14,16 @@ A base ativa considera veículos com dados válidos nos últimos 30 dias. O scor
 
 O painel mostra a saúde geral da frota, os principais problemas encontrados, o ranking dos veículos mais críticos, um mapa técnico e os detalhes que explicam a perda de pontos em cada veículo.
 
+### Filtro: Sem comunicação (offline) — v0.5.0
+
+A partir da v0.5.0, a base inclui veículos **sem nenhum DeviceStatusInfo nos últimos 30 dias** (antes eles eram invisíveis ao cálculo). Eles entram no score como **offline total (30d+)**, com teto de score 15, e também aparecem nos filtros:
+
+- **Sem comunicação (offline):** qualquer veículo há 7 dias ou mais sem dados (`offline`);
+- **Offline 30d+ (total):** veículo sem nenhum status nos últimos 30 dias (`offline30`);
+- **Sem dados 7 dias:** mantido por compatibilidade, equivalente ao 7d+.
+
+O painel exibe contadores de offline no topo, KPIs dedicados (**Offline (sem comunicação)** e **Offline 30d+ (total)**), linhas clicáveis em **Top problemas** para os dois filtros, e colunas `sem_comunicacao_offline` / `offline_30d_total` no CSV. Veículos offline aparecem no ranking (sem marcador no mapa, por não terem posição válida) e no detalhe com "Não — sem comunicação".
+
 ## Add-ins disponíveis no menu
 
 Ao adicionar o conteúdo de `addin-config.json` no MyGeotab, o projeto cria dois itens no menu:
