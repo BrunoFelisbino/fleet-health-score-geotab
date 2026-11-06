@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   'use strict';
 
   const LOGO = './assets/maas-logo-transparent.png';
