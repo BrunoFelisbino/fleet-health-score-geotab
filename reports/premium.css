@@ -1,4 +1,14 @@
+@page { size: A4; margin: 0; }
 @media print {
+  html,body { margin:0 !important; padding:0 !important; background:#fff !important; background-image:none !important; min-height:0 !important; }
+  body,#app { min-height:0 !important; padding:0 !important; background:#fff !important; background-image:none !important; overflow:hidden !important; }
+  #app,.bar,.head,.info,.panel,.grid,.cols,.tablewrap,.alert { display:none !important; visibility:hidden !important; }
+  .pdf-stage,#pdfStage { display:block !important; visibility:visible !important; position:static !important; left:auto !important; top:auto !important; width:auto !important; max-width:none !important; overflow:visible !important; }
+  .pdf-page { width:210mm !important; height:297mm !important; min-height:297mm !important; max-height:297mm !important; padding:42px !important; margin:0 !important; overflow:hidden !important; page-break-after:always !important; break-after:page !important; page-break-inside:avoid !important; position:relative !important; box-shadow:none !important; }
+  .pdf-cover-page { overflow:hidden !important; }
+  .pdf-ranking-page { height:auto !important; max-height:none !important; overflow:visible !important; }
+  .pdf-ranking-page table { page-break-inside:auto !important; }
+  .pdf-page:last-child { page-break-after:auto !important; break-after:auto !important; }
   .pdf-table {
     page-break-inside: auto;
   }
