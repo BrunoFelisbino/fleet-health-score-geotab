@@ -26,12 +26,13 @@ O painel exibe contadores de offline no topo, KPIs dedicados (**Offline (sem com
 
 ## Add-ins disponíveis no menu
 
-Ao adicionar o conteúdo de `addin-config.json` no MyGeotab, o projeto cria dois itens no menu:
+Ao adicionar o conteúdo de `addin-config.json` no MyGeotab, o projeto cria três itens no menu:
 
 | Menu | URL | Função |
 | --- | --- | --- |
 | Fleet Health Score | `/` | Dashboard técnico principal com KPIs, ranking, filtros, mapa e detalhes por veículo. |
 | Relatório PDF | `/reports/` | Tela interna para gerar relatório premium, exportar CSV e abrir o PDF pronto para salvar/imprimir. |
+| Fleet Exception 360 | `/exceptions/` | Dashboard de exceções/regras de telemetria: KPIs, ranking de veículos, regras e exportar CSV. |
 
 O segundo item, **Relatório PDF**, foi criado para gerar um relatório interno com visual Rotagyn, usando o nome do banco/base quando disponível. Se o nome do banco não for identificado pelo add-in, o relatório usa **Rotagyn** como fallback.
 
