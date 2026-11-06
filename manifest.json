@@ -1,16 +1,18 @@
+
 {
   "name": "FleetHealthScore",
-  "short_name": "FleetHealthScore",
-  "description": "Add-in Geotab para score técnico de saúde da frota",
-  "start_url": "https://brunofelisbino.github.io/fleet-health-score-geotab/",
-  "display": "standalone",
-  "background_color": "#f6f8fb",
-  "theme_color": "#0ea5e9",
-  "icons": [
+  "supportEmail": "bruno_felisbino@hotmail.com",
+  "version": "1.0.0",
+  "items": [
     {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/",
+      "path": "EngineMaintenanceLink/",
+      "category": "MaintenanceId",
+      "menuName": {
+        "en": "Fleet Health Score",
+        "pt-BR": "Saúde da Frota"
+      }
     }
-  ]
+  ],
+  "files": {}
 }
