@@ -16,7 +16,7 @@ O painel mostra a saúde geral da frota, os principais problemas encontrados, o 
 
 ### Filtro: Sem comunicação (offline) — v0.5.2
 
-A partir da v0.5.2, a base inclui veículos **sem nenhum DeviceStatusInfo nos últimos 30 dias** (antes eles eram invisíveis ao cálculo). Eles entram no score como **offline total (30d+)**, com teto de score 15, e também aparecem nos filtros:
+A partir da v0.5.2, a base foca nos últimos 7 dias. Veículos sem comunicação nos 7 dias entram como offline e o relatório/dashboard busca FaultData dos últimos 30 dias apenas para esse subconjunto. Eles entram no score como **offline total (30d+)**, com teto de score 15, e também aparecem nos filtros:
 
 - **Sem comunicação (offline):** qualquer veículo há 7 dias ou mais sem dados (`offline`);
 - **Offline 30d+ (total):** veículo sem nenhum status nos últimos 30 dias (`offline30`);
@@ -43,7 +43,7 @@ O relatório inclui:
 
 - capa premium com logo Rotagyn;
 - nome do banco/base analisado;
-- período de análise: base ativa de 30 dias e score dos últimos 7 dias;
+- período de análise: base ativa de 7 dias (+30d apenas para offline) e score dos últimos 7 dias;
 - Fleet Health Index;
 - total de veículos analisados;
 - veículos críticos e em risco alto;
