@@ -6,7 +6,7 @@
     {
       "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/?v=0.5.26",
       "svgIcon": "https://brunofelisbino.github.io/fleet-health-score-geotab/icon.svg",
-      "path": "ActivityLink/",
+      "path": "ActivityLink",
       "menuName": {
         "en": "Fleet Health Score",
         "pt-BR": "Fleet Health Score"
@@ -15,7 +15,7 @@
     {
       "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/exceptions/?v=0.5.26",
       "svgIcon": "https://brunofelisbino.github.io/fleet-health-score-geotab/icon.svg",
-      "path": "ActivityLink/",
+      "path": "ActivityLink",
       "menuName": {
         "en": "Fleet Exception 360",
         "pt-BR": "Fleet Exception 360"
