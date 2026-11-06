@@ -26,23 +26,22 @@ O painel exibe contadores de offline no topo, KPIs dedicados (**Offline (sem com
 
 ## Add-ins disponíveis no menu
 
-Ao adicionar o conteúdo de `addin-config.json` no MyGeotab, o projeto cria três itens no menu:
+Ao adicionar o conteúdo de `addin-config.json` no MyGeotab, o projeto cria dois itens no menu:
 
 | Menu | URL | Função |
 | --- | --- | --- |
-| Fleet Health Score | `/` | Dashboard técnico principal com KPIs, ranking, filtros, mapa e detalhes por veículo. |
-| Relatório PDF | `/reports/` | Tela interna para gerar relatório premium, exportar CSV e abrir o PDF pronto para salvar/imprimir. |
-| Fleet Exception 360 | `/exceptions/` | Dashboard de exceções/regras de telemetria: KPIs, ranking de veículos, regras e exportar CSV. |
+| Fleet Health Score | `/` | Dashboard técnico principal com KPIs, ranking, filtros, mapa, detalhes por veículo, exportação CSV e PDF integrado. |
+| Fleet Exception 360 | `/exceptions/` | Dashboard de exceções/regras de telemetria: KPIs, ranking de veículos, regras, exportar CSV e PDF integrado. |
 
-O segundo item, **Relatório PDF**, foi criado para gerar um relatório interno com visual Rotagyn, usando o nome do banco/base quando disponível. Se o nome do banco não for identificado pelo add-in, o relatório usa **Rotagyn** como fallback.
+O PDF do Fleet Health Score agora é gerado pelo botão **Baixar PDF** dentro do próprio dashboard, usando os filtros aplicados na tela. A antiga tela `/reports/` permanece no repositório apenas como fallback e não aparece mais no menu.
 
-## Relatório PDF premium
+## Relatório PDF integrado
 
-A tela **Relatório PDF** gera uma versão executiva do Fleet Health Score com foco em apresentação interna e tomada de decisão.
+O botão **Baixar PDF** do dashboard gera uma versão executiva do Fleet Health Score com foco em apresentação interna e tomada de decisão, respeitando os filtros de grupo, status, busca e problema selecionado.
 
 O relatório inclui:
 
-- capa premium com logo Rotagyn;
+- capa premium com logo Maas;
 - nome do banco/base analisado;
 - período de análise: base ativa de 7 dias (+30d apenas para offline) e score dos últimos 7 dias;
 - Fleet Health Index;
@@ -51,20 +50,21 @@ O relatório inclui:
 - veículos sem dados há 7 dias ou mais;
 - top problemas da frota;
 - leitura executiva automática;
-- ranking técnico dos veículos mais críticos;
+- ranking técnico dos veículos mais críticos, incluindo datas de possível remoção;
 - plano de ação recomendado.
 
 A geração premium abre uma tela de impressão preparada em páginas A4. No navegador, escolha **Salvar como PDF** para baixar o arquivo final.
 
 ## Exportação CSV
 
-Além do PDF, a tela de relatório permite exportar um CSV dos veículos filtrados com os campos principais:
+Além do PDF, o dashboard permite exportar um CSV dos veículos filtrados com os campos principais:
 
 - nome;
 - placa;
 - score;
 - status;
 - problema principal;
+- possível remoção não autorizada e datas dos eventos;
 - dias sem dados;
 - reboots;
 - falhas GPS;
@@ -144,10 +144,10 @@ A URL padrão do projeto é:
 https://brunofelisbino.github.io/fleet-health-score-geotab/
 ```
 
-A URL da tela de relatório é:
+A URL da tela de exceções é:
 
 ```text
-https://brunofelisbino.github.io/fleet-health-score-geotab/reports/
+https://brunofelisbino.github.io/fleet-health-score-geotab/exceptions/
 ```
 
 O nome registrado do add-in é:
@@ -170,10 +170,10 @@ Depois de adicionar ou atualizar o `addin-config.json` no MyGeotab:
 
 1. Abra o menu do MyGeotab.
 2. Procure por **Fleet Health Score** para acessar o dashboard principal.
-3. Procure por **Relatório PDF** para acessar a tela de relatórios.
-4. Clique em **Gerar análise**.
-5. Use **Baixar PDF premium** ou **Abrir PDF premium** para gerar a versão final.
-6. Use **Exportar CSV** para baixar a base dos veículos analisados.
+3. Clique em **Atualizar análise**.
+4. Use **Baixar PDF** para gerar a versão executiva do relatório.
+5. Use **Exportar CSV** para baixar a base dos veículos analisados.
+6. Para exceções, abra **Fleet Exception 360** e use o botão **Baixar PDF** da própria tela.
 
 Se o MyGeotab continuar exibindo versão antiga, remova e adicione o add-in novamente ou limpe o cache do navegador.
 
