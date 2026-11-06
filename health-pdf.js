@@ -287,6 +287,25 @@
     const totalPages = stage.querySelectorAll('.pdf-page').length;
     stage.style.setProperty('--total-pages', '"' + totalPages + '"');
 
+    try {
+      const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(stage.innerHTML));
+      const hash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16).toUpperCase();
+      const footer = stage.querySelector('.pdf-page:last-child .pdf-footer');
+      if (footer) {
+        const qr = document.createElement('img');
+        qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=' + encodeURIComponent('FHS-' + hash);
+        qr.style.width = '90px';
+        qr.style.height = '90px';
+        qr.alt = 'QR validacao';
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'position:absolute;right:54px;bottom:54px;text-align:center;font-size:8px;color:#64748b';
+        wrap.innerHTML = '<div style="margin-bottom:4px">Validacao</div>';
+        wrap.appendChild(qr);
+        wrap.innerHTML += '<div style="margin-top:4px;font-family:monospace">' + hash + '</div>';
+        footer.parentElement.appendChild(wrap);
+      }
+    } catch (e) {}
+
     const imgs = Array.from(stage.querySelectorAll('img'));
     await Promise.all(imgs.map(img => img.complete ? Promise.resolve() : new Promise(resolve => {
       img.onload = resolve;
