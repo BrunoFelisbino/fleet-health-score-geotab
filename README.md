@@ -14,9 +14,9 @@ A base ativa considera veículos com dados válidos nos últimos 30 dias. O scor
 
 O painel mostra a saúde geral da frota, os principais problemas encontrados, o ranking dos veículos mais críticos, um mapa técnico e os detalhes que explicam a perda de pontos em cada veículo.
 
-### Filtro: Sem comunicação (offline) — v0.5.1
+### Filtro: Sem comunicação (offline) — v0.5.2
 
-A partir da v0.5.1, a base inclui veículos **sem nenhum DeviceStatusInfo nos últimos 30 dias** (antes eles eram invisíveis ao cálculo). Eles entram no score como **offline total (30d+)**, com teto de score 15, e também aparecem nos filtros:
+A partir da v0.5.2, a base inclui veículos **sem nenhum DeviceStatusInfo nos últimos 30 dias** (antes eles eram invisíveis ao cálculo). Eles entram no score como **offline total (30d+)**, com teto de score 15, e também aparecem nos filtros:
 
 - **Sem comunicação (offline):** qualquer veículo há 7 dias ou mais sem dados (`offline`);
 - **Offline 30d+ (total):** veículo sem nenhum status nos últimos 30 dias (`offline30`);
