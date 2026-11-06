@@ -1,10 +1,10 @@
 ﻿{
   "name": "fleetHealthScore",
   "supportEmail": "poze1988@gmail.com",
-  "version": "0.5.25",
+  "version": "0.5.26",
   "items": [
     {
-      "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/?v=0.5.25",
+      "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/?v=0.5.26",
       "svgIcon": "https://brunofelisbino.github.io/fleet-health-score-geotab/icon.svg",
       "path": "ActivityLink/",
       "menuName": {
@@ -13,7 +13,7 @@
       }
     },
     {
-      "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/exceptions/?v=0.5.25",
+      "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/exceptions/?v=0.5.26",
       "svgIcon": "https://brunofelisbino.github.io/fleet-health-score-geotab/icon.svg",
       "path": "ActivityLink/",
       "menuName": {
