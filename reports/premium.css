@@ -66,8 +66,8 @@ body,#app{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);min-h
   .pdf-cover-page{background:radial-gradient(900px 620px at 82% -12%,rgba(36,179,116,.26),transparent 60%),linear-gradient(155deg,#070809 0%,#111417 55%,#050606 100%) !important;color:var(--maas-cream) !important}
   .pdf-cover-page::before{background:radial-gradient(circle,rgba(36,179,116,.35) 0%,transparent 70%) !important}
   .pcp-dots{background-image:radial-gradient(circle,rgba(36,179,116,.23) 1px,transparent 1px) !important}
-  .pcp-logo{background:transparent !important;border-radius:0 !important;height:74px !important;width:auto !important;max-width:220px !important}
-  .pdf-logo{background:#000 !important;border-radius:10px !important;padding:6px 10px !important;height:42px !important;width:auto !important;max-width:180px !important}
+  .pcp-logo{background:transparent !important;border-radius:0 !important;height:auto !important;max-height:74px !important;width:auto !important;max-width:220px !important}
+  .pdf-logo{background:#000 !important;border-radius:10px !important;padding:6px 10px !important;height:auto !important;max-height:42px !important;width:auto !important;max-width:180px !important}
   .pdf-topbar{background:linear-gradient(90deg,var(--maas-black),var(--maas-green)) !important;border-radius:0 !important}
   .pdf-title,.pdf-subtitle,.pdf-section-title{color:var(--maas-black) !important}
   .pdf-section-title{border-bottom-color:#ECE6DA !important}
