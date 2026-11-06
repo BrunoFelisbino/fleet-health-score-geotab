@@ -34,8 +34,8 @@
 
   function stateLabel(s) {
     const map = {
-      ExceptionEventStateValidId: 'Válido',
-      ExceptionEventStateInvalidId: 'Inválido',
+      ExceptionEventStateValidId: 'V├ílido',
+      ExceptionEventStateInvalidId: 'Inv├ílido',
       ExceptionEventStateAcknowledgedId: 'Reconhecido'
     };
     return map[s] || String(s || '-').replace(/^ExceptionEventState/i, '').replace(/Id$/i, '');
@@ -50,7 +50,7 @@
   function filterList(problemFilter, rulesLabel) {
     const parts = [];
     const period = selectedText('periodFilter');
-    if (period) parts.push('Período: ' + period);
+    if (period) parts.push('Per├¡odo: ' + period);
     const group = document.getElementById('groupFilter');
     if (group && group.value) parts.push('Grupo: ' + selectedText('groupFilter'));
     const rule = document.getElementById('ruleFilter');
@@ -126,8 +126,8 @@
   }
 
   function statusFor(instances) {
-    if (instances >= 1000) return { label: 'Crítico', cls: 'pdf-risk' };
-    if (instances >= 300) return { label: 'Atenção', cls: 'pdf-warn' };
+    if (instances >= 1000) return { label: 'Cr├¡tico', cls: 'pdf-risk' };
+    if (instances >= 300) return { label: 'Aten├º├úo', cls: 'pdf-warn' };
     return { label: 'Normal', cls: 'pdf-ok' };
   }
 
@@ -135,10 +135,10 @@
     const top = s.rules[0];
     const coverage = s.activeCount ? s.coverage + '%' : '-';
     const parts = [];
-    parts.push('Foram registrados ' + fmtNum(s.events) + ' eventos no período, somando ' + fmtNum(s.instances) + ' instâncias de exceção em ' + fmtNum(s.vehicleCount) + ' veículos' + (coverage !== '-' ? ' (' + coverage + ' da frota ativa)' : '') + '.');
-    if (top) parts.push('A regra com maior volume foi "' + top.name + '", com ' + fmtNum(top.instances) + ' instâncias.');
-    if (s.buckets[2]) parts.push('Há ' + fmtNum(s.buckets[2]) + ' evento(s) com duração igual ou superior a 30 segundos, que devem ser priorizados na análise operacional.');
-    if (filters.length) parts.push('Este relatório considera somente os filtros aplicados: ' + filters.join(' • ') + '.');
+    parts.push('Foram registrados ' + fmtNum(s.events) + ' eventos no per├¡odo, somando ' + fmtNum(s.instances) + ' inst├óncias de exce├º├úo em ' + fmtNum(s.vehicleCount) + ' ve├¡culos' + (coverage !== '-' ? ' (' + coverage + ' da frota ativa)' : '') + '.');
+    if (top) parts.push('A regra com maior volume foi "' + top.name + '", com ' + fmtNum(top.instances) + ' inst├óncias.');
+    if (s.buckets[2]) parts.push('H├í ' + fmtNum(s.buckets[2]) + ' evento(s) com dura├º├úo igual ou superior a 30 segundos, que devem ser priorizados na an├ílise operacional.');
+    if (filters.length) parts.push('Este relat├│rio considera somente os filtros aplicados: ' + filters.join(' ÔÇó ') + '.');
     return parts.join(' ');
   }
 
@@ -148,7 +148,7 @@
     const ringColor = coverage >= 50 ? '#ef4444' : coverage >= 25 ? '#f97316' : '#10b981';
     const ringGrad = 'conic-gradient(' + ringColor + ' 0% ' + (coverage * 3.6) + 'deg, rgba(255,255,255,0.12) ' + (coverage * 3.6) + 'deg 360deg)';
     const maxRule = Math.max(1, ...s.rules.map(r => r.instances));
-    const filterText = filters.length ? filters.join(' • ') : 'Sem filtros adicionais';
+    const filterText = filters.length ? filters.join(' ÔÇó ') : 'Sem filtros adicionais';
     const maxBucket = Math.max(1, ...s.buckets);
     const exec = readExecutive(s, filters);
     const topVehicles = s.vehicles.slice(0, 5);
@@ -165,15 +165,15 @@
       <div class="pcp-bar"></div>
       <div>
         <h1 class="pcp-title">Fleet<br>Exception 360</h1>
-        <p class="pcp-tagline">Relatório de exceções de telemetria</p>
+        <p class="pcp-tagline">Relat├│rio de exce├º├Áes de telemetria</p>
       </div>
     </div>
   </div>
   <div class="pcp-chips">
-    <div class="pcp-chip"><div><div class="pcp-chip-label">Período</div><div class="pcp-chip-val">${esc(selectedText('periodFilter') || 'Hoje (24h)')}</div></div></div>
-    <div class="pcp-chip"><div><div class="pcp-chip-label">Veículos ativos</div><div class="pcp-chip-val">${fmtNum(s.activeCount)}</div></div></div>
+    <div class="pcp-chip"><div><div class="pcp-chip-label">Per├¡odo</div><div class="pcp-chip-val">${esc(selectedText('periodFilter') || 'Hoje (24h)')}</div></div></div>
+    <div class="pcp-chip"><div><div class="pcp-chip-label">Ve├¡culos ativos</div><div class="pcp-chip-val">${fmtNum(s.activeCount)}</div></div></div>
     <div class="pcp-chip"><div><div class="pcp-chip-label">Eventos</div><div class="pcp-chip-val">${fmtNum(s.events)}</div></div></div>
-    <div class="pcp-chip"><div><div class="pcp-chip-label">Instâncias</div><div class="pcp-chip-val">${fmtNum(s.instances)}</div></div></div>
+    <div class="pcp-chip"><div><div class="pcp-chip-label">Inst├óncias</div><div class="pcp-chip-val">${fmtNum(s.instances)}</div></div></div>
     <div class="pcp-chip"><div><div class="pcp-chip-label">Gerado em</div><div class="pcp-chip-val">${generatedAt}</div></div></div>
   </div>
   <div class="pcp-exec-card">
@@ -183,8 +183,8 @@
       <p>${esc(exec)}</p>
       <p>${esc(filterText)}.</p>
       <div class="pcp-kpi-row">
-        <div class="pcp-kpi-item"><b>${fmtNum(s.vehicleCount)}</b><small>Veículos com<br>exceção</small></div>
-        <div class="pcp-kpi-item warn"><b>${fmtNum(s.instances)}</b><small>Instâncias<br>no filtro</small></div>
+        <div class="pcp-kpi-item"><b>${fmtNum(s.vehicleCount)}</b><small>Ve├¡culos com<br>exce├º├úo</small></div>
+        <div class="pcp-kpi-item warn"><b>${fmtNum(s.instances)}</b><small>Inst├óncias<br>no filtro</small></div>
         <div class="pcp-kpi-item red"><b>${fmtNum(s.rulesCount)}</b><small>Regras<br>acionadas</small></div>
         <div class="pcp-kpi-item green"><b>${coverage}%</b><small>Cobertura<br>da frota</small></div>
       </div>
@@ -199,7 +199,7 @@
       </div>
     </div>
   </div>
-  <div class="pdf-footer"><span>Fleet Exception 360 • Maas</span><span class="page-number"></span></div>
+  <div class="pdf-footer"><span>Fleet Exception 360 ÔÇó Maas</span><span class="page-number"></span></div>
 </div>`;
 
     const p2 = `
@@ -210,19 +210,19 @@
     <img class="pdf-logo" src="${LOGO}" alt="Maas">
   </div>
   <div class="pdf-grid-4">
-    <div class="pdf-kpi"><small>Eventos</small><b style="color:#ef4444">${fmtNum(s.events)}</b><span>no período</span></div>
-    <div class="pdf-kpi"><small>Instâncias</small><b style="color:#f97316">${fmtNum(s.instances)}</b><span>soma das exceções</span></div>
-    <div class="pdf-kpi"><small>Veículos com exceção</small><b>${fmtNum(s.vehicleCount)}</b><span>${s.activeCount ? coverage + '% da frota ativa' : 'base filtrada'}</span></div>
+    <div class="pdf-kpi"><small>Eventos</small><b style="color:#ef4444">${fmtNum(s.events)}</b><span>no per├¡odo</span></div>
+    <div class="pdf-kpi"><small>Inst├óncias</small><b style="color:#f97316">${fmtNum(s.instances)}</b><span>soma das exce├º├Áes</span></div>
+    <div class="pdf-kpi"><small>Ve├¡culos com exce├º├úo</small><b>${fmtNum(s.vehicleCount)}</b><span>${s.activeCount ? coverage + '% da frota ativa' : 'base filtrada'}</span></div>
     <div class="pdf-kpi"><small>Regras acionadas</small><b style="color:#0ea5e9">${fmtNum(s.rulesCount)}</b><span>distintas no filtro</span></div>
   </div>
   <div class="pdf-section">
     <div class="pdf-two-col">
       <div class="pdf-card">
-        <div class="pdf-section-title">Top regras por instâncias</div>
+        <div class="pdf-section-title">Top regras por inst├óncias</div>
         <div class="pdf-bars">${topRules.map(r => `<div class="row"><div>${esc(r.name)}</div><div class="track"><div class="fill" style="width:${Math.round(r.instances / maxRule * 100)}%;background:#ef4444"></div></div><div>${fmtNum(r.instances)}</div></div>`).join('') || '<div class="pdf-summary-box">Sem regras no filtro.</div>'}</div>
-        <div class="pdf-section-title" style="margin-top:16px">Distribuição por duração</div>
+        <div class="pdf-section-title" style="margin-top:16px">Distribui├º├úo por dura├º├úo</div>
         <div class="pdf-bars">
-          <div class="row"><div>Até 10s</div><div class="track"><div class="fill" style="width:${Math.round(s.buckets[0] / maxBucket * 100)}%;background:#10b981"></div></div><div>${fmtNum(s.buckets[0])}</div></div>
+          <div class="row"><div>At├® 10s</div><div class="track"><div class="fill" style="width:${Math.round(s.buckets[0] / maxBucket * 100)}%;background:#10b981"></div></div><div>${fmtNum(s.buckets[0])}</div></div>
           <div class="row"><div>10s a 30s</div><div class="track"><div class="fill" style="width:${Math.round(s.buckets[1] / maxBucket * 100)}%;background:#f59e0b"></div></div><div>${fmtNum(s.buckets[1])}</div></div>
           <div class="row"><div>30s ou mais</div><div class="track"><div class="fill" style="width:${Math.round(s.buckets[2] / maxBucket * 100)}%;background:#ef4444"></div></div><div>${fmtNum(s.buckets[2])}</div></div>
         </div>
@@ -230,31 +230,31 @@
       <div class="pdf-card">
         <div class="pdf-section-title">Leitura executiva</div>
         <div class="pdf-summary-box"><b>Filtros aplicados:</b> ${esc(filterText)}</div>
-        <div class="pdf-summary-box"><b>Condição atual:</b> ${esc(exec)}</div>
-        <div class="pdf-summary-box"><b>Prioridade:</b> atuar primeiro nas regras de maior volume e nos veículos com mais instâncias. Validar reincidência, configuração da regra e causa operacional antes de tratar como falha do device.</div>
-        <div class="pdf-summary-box"><b>Leitura das instâncias:</b> a soma representa o campo de contagem retornado pelas ExceptionEvent, não a quantidade de linhas brutas do relatório.</div>
+        <div class="pdf-summary-box"><b>Condi├º├úo atual:</b> ${esc(exec)}</div>
+        <div class="pdf-summary-box"><b>Prioridade:</b> atuar primeiro nas regras de maior volume e nos ve├¡culos com mais inst├óncias. Validar reincid├¬ncia, configura├º├úo da regra e causa operacional antes de tratar como falha do device.</div>
+        <div class="pdf-summary-box"><b>Leitura das inst├óncias:</b> a soma representa o campo de contagem retornado pelas ExceptionEvent, n├úo a quantidade de linhas brutas do relat├│rio.</div>
       </div>
     </div>
   </div>
-  <div class="pdf-footer"><span>Fleet Exception 360 • Resumo executivo</span><span class="page-number"></span></div>
+  <div class="pdf-footer"><span>Fleet Exception 360 ÔÇó Resumo executivo</span><span class="page-number"></span></div>
 </div>`;
 
     const p3 = `
 <div class="pdf-page pdf-ranking-page">
   <div class="pdf-topbar"></div>
   <div class="pdf-brand">
-    <div><h1 class="pdf-title">Ranking por instâncias</h1><div class="pdf-subtitle">Veículos com exceções dentro do filtro aplicado</div></div>
+    <div><h1 class="pdf-title">Ranking por inst├óncias</h1><div class="pdf-subtitle">Ve├¡culos com exce├º├Áes dentro do filtro aplicado</div></div>
     <img class="pdf-logo" src="${LOGO}" alt="Maas">
   </div>
   <table class="pdf-table">
     <thead><tr>
       <th style="width:24px">#</th>
-      <th style="width:58px">Instâncias</th>
+      <th style="width:58px">Inst├óncias</th>
       <th style="width:40px">Eventos</th>
       <th style="width:72px">Placa</th>
-      <th>Veículo</th>
+      <th>Ve├¡culo</th>
       <th style="width:38px">Regras</th>
-      <th style="width:52px">Último</th>
+      <th style="width:52px">├Ültimo</th>
       <th style="width:58px">Status</th>
     </tr></thead>
     <tbody>${s.vehicles.map((v, i) => {
@@ -273,8 +273,8 @@
   </table>
   <div class="pdf-footer" style="left:54px;right:54px">
     <div class="pdf-legend">
-      <span class="pdf-legend-item"><i class="risk"></i> Instâncias críticas (1.000+)</span>
-      <span>Fleet Exception 360 • Ranking</span>
+      <span class="pdf-legend-item"><i class="risk"></i> Inst├óncias cr├¡ticas (1.000+)</span>
+      <span>Fleet Exception 360 ÔÇó Ranking</span>
     </div>
     <span class="page-number"></span>
   </div>
@@ -284,18 +284,18 @@
 <div class="pdf-page">
   <div class="pdf-topbar"></div>
   <div class="pdf-brand">
-    <div><h1 class="pdf-title">Plano de ação recomendado</h1><div class="pdf-subtitle">Prioridades de atuação operacional</div></div>
+    <div><h1 class="pdf-title">Plano de a├º├úo recomendado</h1><div class="pdf-subtitle">Prioridades de atua├º├úo operacional</div></div>
     <img class="pdf-logo" src="${LOGO}" alt="Maas">
   </div>
-  <div class="pdf-action"><h4>Prioridade 1 — regra de maior volume</h4><p>${top ? 'A regra "' + esc(top.name) + '" concentra ' + fmtNum(top.instances) + ' instâncias no filtro. Revisar a configuração da regra, o contexto operacional e a causa raiz antes de classificar como falha do veículo ou do dispositivo.' : 'Não há regra acionada no filtro atual.'}</p></div>
-  <div class="pdf-action"><h4>Prioridade 2 — veículos reincidentes</h4><p>${topVehicles.length ? 'Começar pelos veículos ' + topVehicles.map(v => esc(v.placa || v.veiculo)).join(', ') + '. Validar turno, rota, operador e histórico de eventos para separar comportamento operacional de problema técnico.' : 'Nenhum veículo com evento no filtro.'}</p></div>
-  <div class="pdf-action"><h4>Prioridade 3 — eventos de longa duração</h4><p>${fmtNum(s.buckets[2])} evento(s) com duração igual ou superior a 30 segundos. Priorizar a investigação desses casos, pois tendem a representar maior impacto operacional.</p></div>
-  <div class="pdf-action"><h4>Prioridade 4 — cobertura e validação do filtro</h4><p>${s.activeCount ? fmtNum(s.vehicleCount) + ' veículo(s) com exceção representam ' + coverage + '% da frota ativa considerada.' : 'A base ativa não foi identificada nesta execução.'} Conferir o período e os filtros antes de comparar bases ou períodos diferentes.</p></div>
+  <div class="pdf-action"><h4>Prioridade 1 ÔÇö regra de maior volume</h4><p>${top ? 'A regra "' + esc(top.name) + '" concentra ' + fmtNum(top.instances) + ' inst├óncias no filtro. Revisar a configura├º├úo da regra, o contexto operacional e a causa raiz antes de classificar como falha do ve├¡culo ou do dispositivo.' : 'N├úo h├í regra acionada no filtro atual.'}</p></div>
+  <div class="pdf-action"><h4>Prioridade 2 ÔÇö ve├¡culos reincidentes</h4><p>${topVehicles.length ? 'Come├ºar pelos ve├¡culos ' + topVehicles.map(v => esc(v.placa || v.veiculo)).join(', ') + '. Validar turno, rota, operador e hist├│rico de eventos para separar comportamento operacional de problema t├®cnico.' : 'Nenhum ve├¡culo com evento no filtro.'}</p></div>
+  <div class="pdf-action"><h4>Prioridade 3 ÔÇö eventos de longa dura├º├úo</h4><p>${fmtNum(s.buckets[2])} evento(s) com dura├º├úo igual ou superior a 30 segundos. Priorizar a investiga├º├úo desses casos, pois tendem a representar maior impacto operacional.</p></div>
+  <div class="pdf-action"><h4>Prioridade 4 ÔÇö cobertura e valida├º├úo do filtro</h4><p>${s.activeCount ? fmtNum(s.vehicleCount) + ' ve├¡culo(s) com exce├º├úo representam ' + coverage + '% da frota ativa considerada.' : 'A base ativa n├úo foi identificada nesta execu├º├úo.'} Conferir o per├¡odo e os filtros antes de comparar bases ou per├¡odos diferentes.</p></div>
   <div class="pdf-section">
-    <div class="pdf-section-title">Síntese</div>
-    <div class="pdf-summary-box">Exceção só vira ação quando a regra, o veículo e o contexto operacional são analisados juntos. Use este relatório como priorização, não como conclusão isolada.</div>
+    <div class="pdf-section-title">S├¡ntese</div>
+    <div class="pdf-summary-box">Exce├º├úo s├│ vira a├º├úo quando a regra, o ve├¡culo e o contexto operacional s├úo analisados juntos. Use este relat├│rio como prioriza├º├úo, n├úo como conclus├úo isolada.</div>
   </div>
-  <div class="pdf-footer"><span>Fleet Exception 360 • Plano de Ação</span><span class="page-number"></span></div>
+  <div class="pdf-footer"><span>Fleet Exception 360 ÔÇó Plano de A├º├úo</span><span class="page-number"></span></div>
 </div>`;
 
     return p1 + p2 + p3 + p4;
@@ -320,7 +320,7 @@
       if (alertBox) {
         alertBox.style.display = 'block';
         alertBox.className = 'alert err';
-        alertBox.textContent = 'Área de impressão ausente. Atualize a página.';
+        alertBox.textContent = '├ürea de impress├úo ausente. Atualize a p├ígina.';
       }
       return;
     }
@@ -338,7 +338,7 @@
     if (alertBox) {
       alertBox.style.display = 'block';
       alertBox.className = 'alert ok';
-      alertBox.textContent = 'O relatório será aberto na tela de impressão. Escolha "Salvar como PDF".';
+      alertBox.textContent = 'O relat├│rio ser├í aberto na tela de impress├úo. Escolha "Salvar como PDF".';
     }
 
     stage.innerHTML = buildHtml(s, filters, generatedAt);

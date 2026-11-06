@@ -12,25 +12,25 @@
   const fmtNum = n => Number(n || 0).toLocaleString('pt-BR');
   const pct = (a, b) => b ? Math.round((a / b) * 100) : 0;
   const scColor = s => s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : s >= 40 ? '#f97316' : '#ef4444';
-  const scLabel = s => s >= 80 ? 'Saud·vel' : s >= 60 ? 'AtenÁ„o' : s >= 40 ? 'CrÌtico' : 'Risco alto';
+  const scLabel = s => s >= 80 ? 'Saud√°vel' : s >= 60 ? 'Aten√ß√£o' : s >= 40 ? 'Cr√≠tico' : 'Risco alto';
   const pdfBadge = s => s >= 80 ? 'pdf-ok' : s >= 60 ? 'pdf-warn' : s >= 40 ? 'pdf-critical' : 'pdf-risk';
 
   function problem(v) {
     if (!v) return '-';
-    if (v.unplugged > 0) return 'PossÌvel remoÁ„o n„o autorizada';
-    if (v.offline) return v.dias >= 30 ? 'Offline 30d+ (sem dados na base)' : 'Sem comunicaÁ„o ' + v.dias + ' dias';
-    if (v.vlow > 0) return 'Tens„o baixa';
-    if (v.vhigh > 0) return 'Tens„o alta';
+    if (v.unplugged > 0) return 'Poss√≠vel remo√ß√£o n√£o autorizada';
+    if (v.offline) return v.dias >= 30 ? 'Offline 30d+ (sem dados na base)' : 'Sem comunica√ß√£o ' + v.dias + ' dias';
+    if (v.vlow > 0) return 'Tens√£o baixa';
+    if (v.vhigh > 0) return 'Tens√£o alta';
     if (v.reboots > 2) return 'Reboot excessivo';
     if (v.gps > 0) return 'Falha GPS';
     if (v.faults > 0) return 'Falha device';
-    return 'Sem alerta crÌtico';
+    return 'Sem alerta cr√≠tico';
   }
 
   function executive(avg) {
-    if (avg >= 80) return 'A frota apresenta um cen·rio saud·vel, com baixa incidÍncia de falhas crÌticas e boa estabilidade operacional.';
-    if (avg >= 60) return 'A frota est· em atenÁ„o. Existem indÌcios claros de degradaÁ„o operacional que exigem aÁ„o preventiva.';
-    return 'A frota est· em estado crÌtico. … necess·rio atuar imediatamente nos veÌculos com maior risco operacional.';
+    if (avg >= 80) return 'A frota apresenta um cen√°rio saud√°vel, com baixa incid√™ncia de falhas cr√≠ticas e boa estabilidade operacional.';
+    if (avg >= 60) return 'A frota est√° em aten√ß√£o. Existem ind√≠cios claros de degrada√ß√£o operacional que exigem a√ß√£o preventiva.';
+    return 'A frota est√° em estado cr√≠tico. √â necess√°rio atuar imediatamente nos ve√≠culos com maior risco operacional.';
   }
 
   function summary(list) {
@@ -56,13 +56,13 @@
   function topProblems(list) {
     const s = summary(list);
     return [
-      { label: 'Offline (sem comunicaÁ„o)', value: s.offline, color: '#dc2626' },
+      { label: 'Offline (sem comunica√ß√£o)', value: s.offline, color: '#dc2626' },
       { label: 'Offline 30d+ (total)', value: s.offline30, color: '#7f1d1d' },
       { label: 'Sem dados 7d+', value: s.nodata, color: '#ef4444' },
-      { label: 'Tens„o fora', value: s.voltage, color: '#f97316' },
+      { label: 'Tens√£o fora', value: s.voltage, color: '#f97316' },
       { label: 'Falha GPS', value: s.gps, color: '#f59e0b' },
       { label: 'Reboot excessivo', value: s.reboot, color: '#0ea5e9' },
-      { label: 'Desconex„o', value: s.unplugged, color: '#dc2626' }
+      { label: 'Desconex√£o', value: s.unplugged, color: '#dc2626' }
     ];
   }
 
@@ -73,16 +73,16 @@
   }
 
   const PROBLEM_LABELS = {
-    unplugged: 'PossÌvel remoÁ„o n„o autorizada',
-    voltage: 'Tens„o fora do padr„o',
-    vlow: 'Tens„o baixa',
-    vhigh: 'Tens„o alta',
+    unplugged: 'Poss√≠vel remo√ß√£o n√£o autorizada',
+    voltage: 'Tens√£o fora do padr√£o',
+    vlow: 'Tens√£o baixa',
+    vhigh: 'Tens√£o alta',
     reboot: 'Reboot excessivo',
     gps: 'Falha GPS',
-    nodata: 'Sem comunicaÁ„o 7d+',
-    offline: 'Sem comunicaÁ„o (offline)',
+    nodata: 'Sem comunica√ß√£o 7d+',
+    offline: 'Sem comunica√ß√£o (offline)',
     offline30: 'Offline 30d+ (total)',
-    device: 'Falha crÌtica do device'
+    device: 'Falha cr√≠tica do device'
   };
 
   function fullFilterText(problemFilter) {
@@ -94,7 +94,7 @@
     if (score && score !== 'Todos os status') parts.push('Status: ' + score);
     if (query && query.value.trim()) parts.push('Busca: ' + query.value.trim());
     if (problemFilter) parts.push('Problema: ' + (PROBLEM_LABELS[problemFilter] || problemFilter));
-    return parts.length ? parts.join(' ï ') : 'Todos os veÌculos da base analisada';
+    return parts.length ? parts.join(' ‚Ä¢ ') : 'Todos os ve√≠culos da base analisada';
   }
 
   function buildHtml(ctx) {
@@ -120,26 +120,26 @@
       <div class="pcp-bar"></div>
       <div>
         <h1 class="pcp-title">Fleet<br>Health Score</h1>
-        <p class="pcp-tagline">RelatÛrio premium de sa˙de tÈcnica da frota</p>
+        <p class="pcp-tagline">Relat√≥rio premium de sa√∫de t√©cnica da frota</p>
       </div>
     </div>
   </div>
   <div class="pcp-chips">
     <div class="pcp-chip"><div><div class="pcp-chip-label">Banco/Base</div><div class="pcp-chip-val">${esc(dbName)}</div></div></div>
     <div class="pcp-chip"><div><div class="pcp-chip-label">Base ativa</div><div class="pcp-chip-val">7 dias (+30d offline)</div></div></div>
-    <div class="pcp-chip"><div><div class="pcp-chip-label">Score</div><div class="pcp-chip-val">˙ltimos 7 dias</div></div></div>
+    <div class="pcp-chip"><div><div class="pcp-chip-label">Score</div><div class="pcp-chip-val">√∫ltimos 7 dias</div></div></div>
     <div class="pcp-chip"><div><div class="pcp-chip-label">Gerado em</div><div class="pcp-chip-val">${generatedAt}</div></div></div>
   </div>
   <div class="pcp-exec-card">
     <div class="pcp-exec-text">
       <div class="pcp-exec-header">Resumo executivo</div>
       <div class="pcp-exec-rule"></div>
-      <p>Este relatÛrio apresenta uma vis„o consolidada da sa˙de tÈcnica da frota com base nas an·lises mais recentes dos veÌculos monitorados.</p>
-      <p>As possÌveis remoÁıes s„o identificadas por eventos de desconex„o ou unplugged.</p>
+      <p>Este relat√≥rio apresenta uma vis√£o consolidada da sa√∫de t√©cnica da frota com base nas an√°lises mais recentes dos ve√≠culos monitorados.</p>
+      <p>As poss√≠veis remo√ß√µes s√£o identificadas por eventos de desconex√£o ou unplugged.</p>
       <p>${esc(filterText)}.</p>
       <div class="pcp-kpi-row">
-        <div class="pcp-kpi-item"><b>${fmtNum(s.total)}</b><small>VeÌculos<br>monitorados</small></div>
-        <div class="pcp-kpi-item warn"><b>${fmtNum(s.critical + s.risk)}</b><small>VeÌculos com<br>alertas</small></div>
+        <div class="pcp-kpi-item"><b>${fmtNum(s.total)}</b><small>Ve√≠culos<br>monitorados</small></div>
+        <div class="pcp-kpi-item warn"><b>${fmtNum(s.critical + s.risk)}</b><small>Ve√≠culos com<br>alertas</small></div>
         <div class="pcp-kpi-item red"><b>${fmtNum(s.nodata)}</b><small>Sem dados<br>7d+</small></div>
         <div class="pcp-kpi-item green"><b>${pct(s.healthy, s.total)}%</b><small>Disponib.<br>operacional</small></div>
       </div>
@@ -153,21 +153,21 @@
       </div>
     </div>
   </div>
-  <div class="pdf-footer"><span>Fleet Health Score ï ${esc(dbName)}</span><span class="page-number"></span></div>
+  <div class="pdf-footer"><span>Fleet Health Score ‚Ä¢ ${esc(dbName)}</span><span class="page-number"></span></div>
 </div>`;
 
     const p2 = `
 <div class="pdf-page">
   <div class="pdf-topbar"></div>
   <div class="pdf-brand">
-    <div><h1 class="pdf-title">Resumo executivo</h1><div class="pdf-subtitle">KPIs e leitura estratÈgica da frota</div></div>
+    <div><h1 class="pdf-title">Resumo executivo</h1><div class="pdf-subtitle">KPIs e leitura estrat√©gica da frota</div></div>
     <img class="pdf-logo" src="${LOGO}" alt="Maas">
   </div>
   <div class="pdf-grid-4">
     <div class="pdf-kpi"><small>Fleet Health Index</small><b style="color:${scoreColor}">${s.avg}</b><span>de 100</span></div>
-    <div class="pdf-kpi"><small>VeÌculos analisados</small><b>${fmtNum(s.total)}</b><span>base filtrada</span></div>
-    <div class="pdf-kpi"><small>CrÌticos + risco</small><b style="color:#ef4444">${fmtNum(s.critical + s.risk)}</b><span>${pct(s.critical + s.risk, s.total)}% da frota</span></div>
-    <div class="pdf-kpi"><small>PossÌvel remoÁ„o</small><b style="color:#f97316">${fmtNum(s.unplugged)}</b><span>com data do evento</span></div>
+    <div class="pdf-kpi"><small>Ve√≠culos analisados</small><b>${fmtNum(s.total)}</b><span>base filtrada</span></div>
+    <div class="pdf-kpi"><small>Cr√≠ticos + risco</small><b style="color:#ef4444">${fmtNum(s.critical + s.risk)}</b><span>${pct(s.critical + s.risk, s.total)}% da frota</span></div>
+    <div class="pdf-kpi"><small>Poss√≠vel remo√ß√£o</small><b style="color:#f97316">${fmtNum(s.unplugged)}</b><span>com data do evento</span></div>
   </div>
   <div class="pdf-section">
     <div class="pdf-two-col">
@@ -178,22 +178,22 @@
       <div class="pdf-card">
         <div class="pdf-section-title">Leitura executiva</div>
         <div class="pdf-summary-box"><b>Banco/Base:</b> ${esc(dbName)}</div>
-        <div class="pdf-summary-box"><b>CondiÁ„o atual:</b> ${esc(executive(s.avg))}</div>
-        <div class="pdf-summary-box"><b>Prioridade:</b> atuar primeiro em score abaixo de 60, sem dados 7d+, tens„o fora e eventos de desconex„o.</div>
-        <div class="pdf-summary-box"><b>PossÌveis remoÁıes:</b> ${fmtNum(s.unplugged)} veÌculo(s) com data do evento no ranking e no CSV.</div>
+        <div class="pdf-summary-box"><b>Condi√ß√£o atual:</b> ${esc(executive(s.avg))}</div>
+        <div class="pdf-summary-box"><b>Prioridade:</b> atuar primeiro em score abaixo de 60, sem dados 7d+, tens√£o fora e eventos de desconex√£o.</div>
+        <div class="pdf-summary-box"><b>Poss√≠veis remo√ß√µes:</b> ${fmtNum(s.unplugged)} ve√≠culo(s) com data do evento no ranking e no CSV.</div>
         <div class="pdf-summary-box"><b>Filtros aplicados:</b> ${esc(filterText)}</div>
-        <div class="pdf-summary-box"><b>Faixa saud·vel:</b> 80ñ100 ï <b>AtenÁ„o:</b> 60ñ79 ï <b>CrÌtico:</b> 40ñ59 ï <b>Risco alto:</b> abaixo de 40</div>
+        <div class="pdf-summary-box"><b>Faixa saud√°vel:</b> 80‚Äì100 ‚Ä¢ <b>Aten√ß√£o:</b> 60‚Äì79 ‚Ä¢ <b>Cr√≠tico:</b> 40‚Äì59 ‚Ä¢ <b>Risco alto:</b> abaixo de 40</div>
       </div>
     </div>
   </div>
-  <div class="pdf-footer"><span>Fleet Health Score ï ${esc(dbName)}</span><span class="page-number"></span></div>
+  <div class="pdf-footer"><span>Fleet Health Score ‚Ä¢ ${esc(dbName)}</span><span class="page-number"></span></div>
 </div>`;
 
     const p3 = `
 <div class="pdf-page pdf-ranking-page">
   <div class="pdf-topbar"></div>
   <div class="pdf-brand">
-    <div><h1 class="pdf-title">Ranking tÈcnico da frota</h1><div class="pdf-subtitle">VeÌculos mais crÌticos e suas causas principais</div></div>
+    <div><h1 class="pdf-title">Ranking t√©cnico da frota</h1><div class="pdf-subtitle">Ve√≠culos mais cr√≠ticos e suas causas principais</div></div>
     <img class="pdf-logo" src="${LOGO}" alt="Maas">
   </div>
   <table class="pdf-table">
@@ -201,10 +201,10 @@
       <th style="width:24px">#</th>
       <th style="width:42px">Score</th>
       <th style="width:78px">Placa</th>
-      <th>VeÌculo</th>
-      <th style="width:46px">⁄ltimo</th>
+      <th>Ve√≠culo</th>
+      <th style="width:46px">√öltimo</th>
       <th>Problema principal</th>
-      <th style="width:92px">Datas remoÁ„o</th>
+      <th style="width:92px">Datas remo√ß√£o</th>
       <th style="width:60px">Status</th>
     </tr></thead>
     <tbody>${top.map((v, i) => `<tr class="${v.score < 40 ? 'pdf-row-risk' : ''}">
@@ -216,12 +216,12 @@
       <td style="font-size:9px">${esc(problem(v))}</td>
       <td style="font-size:8px;color:#64748b">${esc(v.removalDatesText || '-')}</td>
       <td><span class="pdf-badge ${pdfBadge(v.score)}">${scLabel(v.score)}</span></td>
-    </tr>`).join('') || '<tr><td colspan="8">Nenhum veÌculo encontrado.</td></tr>'}</tbody>
+    </tr>`).join('') || '<tr><td colspan="8">Nenhum ve√≠culo encontrado.</td></tr>'}</tbody>
   </table>
   <div class="pdf-footer" style="left:54px;right:54px">
     <div class="pdf-legend">
-      <span class="pdf-legend-item"><i class="risk"></i> Score crÌtico (&lt; 40)</span>
-      <span>Fleet Health Score ï Ranking TÈcnico</span>
+      <span class="pdf-legend-item"><i class="risk"></i> Score cr√≠tico (&lt; 40)</span>
+      <span>Fleet Health Score ‚Ä¢ Ranking T√©cnico</span>
     </div>
     <span class="page-number"></span>
   </div>
@@ -231,18 +231,18 @@
 <div class="pdf-page">
   <div class="pdf-topbar"></div>
   <div class="pdf-brand">
-    <div><h1 class="pdf-title">Plano de aÁ„o recomendado</h1><div class="pdf-subtitle">Prioridades de atuaÁ„o operacional</div></div>
+    <div><h1 class="pdf-title">Plano de a√ß√£o recomendado</h1><div class="pdf-subtitle">Prioridades de atua√ß√£o operacional</div></div>
     <img class="pdf-logo" src="${LOGO}" alt="Maas">
   </div>
-  <div class="pdf-action"><h4>Prioridade 1 ó possÌveis remoÁıes e desconexıes</h4><p>Validar imediatamente energia, chicote, violaÁ„o fÌsica, alimentaÁ„o e histÛrico do dispositivo na data indicada. Pedir para verificar se o lacre ainda se encontra entre o dispositivo e o chicote, e entre o chicote e a tomada OBD 2.</p></div>
-  <div class="pdf-action"><h4>Prioridade 2 ó offline e sem comunicaÁ„o</h4><p>VeÌculos sem comunicaÁ„o h· 7 dias ou mais est„o fora da operaÁ„o de dados. VeÌculos sem status h· 30 dias ou mais est„o fora da base ativa. Verificar se o veÌculo teve atividade depois da data da ˙ltima comunicaÁ„o. Se sim, agendar o quanto antes uma verificaÁ„o fÌsica do dispositivo.</p></div>
-  <div class="pdf-action"><h4>Prioridade 3 ó tens„o baixa ou alta recorrente</h4><p>Revisar bateria, alternador, aterramento e qualidade da instalaÁ„o elÈtrica.</p></div>
-  <div class="pdf-action"><h4>Prioridade 4 ó reboots e falhas de GPS reincidentes</h4><p>Abrir an·lise tÈcnica focando em firmware, posiÁ„o e estabilidade da alimentaÁ„o. Contatar o suporte e pedir uma an·lise, pois n„o È normal esse volume de reboots, a n„o ser que seja um caminh„o que precise desligar a chave geral. Se for o caso, desconsiderar essa aÁ„o.</p></div>
+  <div class="pdf-action"><h4>Prioridade 1 ‚Äî poss√≠veis remo√ß√µes e desconex√µes</h4><p>Validar imediatamente energia, chicote, viola√ß√£o f√≠sica, alimenta√ß√£o e hist√≥rico do dispositivo na data indicada. Pedir para verificar se o lacre ainda se encontra entre o dispositivo e o chicote, e entre o chicote e a tomada OBD 2.</p></div>
+  <div class="pdf-action"><h4>Prioridade 2 ‚Äî offline e sem comunica√ß√£o</h4><p>Ve√≠culos sem comunica√ß√£o h√° 7 dias ou mais est√£o fora da opera√ß√£o de dados. Ve√≠culos sem status h√° 30 dias ou mais est√£o fora da base ativa. Verificar se o ve√≠culo teve atividade depois da data da √∫ltima comunica√ß√£o. Se sim, agendar o quanto antes uma verifica√ß√£o f√≠sica do dispositivo.</p></div>
+  <div class="pdf-action"><h4>Prioridade 3 ‚Äî tens√£o baixa ou alta recorrente</h4><p>Revisar bateria, alternador, aterramento e qualidade da instala√ß√£o el√©trica.</p></div>
+  <div class="pdf-action"><h4>Prioridade 4 ‚Äî reboots e falhas de GPS reincidentes</h4><p>Abrir an√°lise t√©cnica focando em firmware, posi√ß√£o e estabilidade da alimenta√ß√£o. Contatar o suporte e pedir uma an√°lise, pois n√£o √© normal esse volume de reboots, a n√£o ser que seja um caminh√£o que precise desligar a chave geral. Se for o caso, desconsiderar essa a√ß√£o.</p></div>
   <div class="pdf-section">
-    <div class="pdf-section-title">SÌntese</div>
-    <div class="pdf-summary-box">Telemetria sÛ gera confianÁa quando cada dado vira decis„o no veÌculo e na operaÁ„o.</div>
+    <div class="pdf-section-title">S√≠ntese</div>
+    <div class="pdf-summary-box">Telemetria s√≥ gera confian√ßa quando cada dado vira decis√£o no ve√≠culo e na opera√ß√£o.</div>
   </div>
-  <div class="pdf-footer"><span>Fleet Health Score ï Plano de AÁ„o</span><span class="page-number"></span></div>
+  <div class="pdf-footer"><span>Fleet Health Score ‚Ä¢ Plano de A√ß√£o</span><span class="page-number"></span></div>
 </div>`;
 
     return p1 + p2 + p3 + p4;
@@ -259,7 +259,7 @@
       if (alertBox) {
         alertBox.style.display = 'block';
         alertBox.className = 'alert err';
-        alertBox.textContent = 'Carregue a an·lise antes de baixar o PDF.';
+        alertBox.textContent = 'Carregue a an√°lise antes de baixar o PDF.';
       }
       return;
     }
@@ -267,7 +267,7 @@
       if (alertBox) {
         alertBox.style.display = 'block';
         alertBox.className = 'alert err';
-        alertBox.textContent = '¡rea de impress„o ausente. Atualize a p·gina.';
+        alertBox.textContent = '√Årea de impress√£o ausente. Atualize a p√°gina.';
       }
       return;
     }
@@ -280,7 +280,7 @@
     if (alertBox) {
       alertBox.style.display = 'block';
       alertBox.className = 'alert ok';
-      alertBox.textContent = 'O relatÛrio ser· aberto na tela de impress„o. Escolha "Salvar como PDF".';
+      alertBox.textContent = 'O relat√≥rio ser√° aberto na tela de impress√£o. Escolha "Salvar como PDF".';
     }
 
     stage.innerHTML = buildHtml(ctx);
@@ -300,7 +300,7 @@
       btn.disabled = false;
       btn.textContent = 'Baixar PDF';
     }
-    if (statusBox) statusBox.textContent = fmtNum(list.length) + ' veÌculos';
+    if (statusBox) statusBox.textContent = fmtNum(list.length) + ' ve√≠culos';
   }
 
   window.HealthPdf = { download };
