@@ -13,7 +13,7 @@ Projeto reutilizável para calcular indicadores técnicos de telemetria, visuali
 
 ## Instalação
 
-1. Para instalar a versão hospedada neste repositório, utilize **addin-config.json**, já com URLs públicas e versão **0.6.1**. Para reproduzir em outro servidor, publique os arquivos em HTTPS e copie **addin-config.example.json**, substituindo SEU_HOST_PUBLICO pela origem de sua própria hospedagem.
+1. Para instalar a versão hospedada neste repositório, utilize **addin-config.json**, já com URLs públicas e versão **0.6.2**. Para reproduzir em outro servidor, publique os arquivos em HTTPS e copie **addin-config.example.json**, substituindo SEU_HOST_PUBLICO pela origem de sua própria hospedagem.
 2. Em **MyGeotab → Administração → Sistema → Configurações do sistema → Add-Ins**, atualize a configuração antiga ou instale o JSON correspondente. Salve e atualize a página MyGeotab. O JavaScript da página não modifica automaticamente o JSON instalado na conta.
 3. O item antigo **Relatório PDF** ainda tem a URL compatível `reports/`, que abre o painel principal com a ação **Baixar PDF**. Novas instalações usam os dois menus **Fleet Health Score** e **Fleet Exception 360**.
 4. Abra o Fleet Health Score ou o Fleet Exception 360 e clique em **Configurar PDF**. Envie um **PNG** para ser usado nos cabeçalhos/capa do PDF e informe a **URL HTTPS** do QR Code. Em **Outras opções de identidade**, configure nome, ícone e fonte. O envio de imagem por URL HTTPS também é permitido.
@@ -60,9 +60,21 @@ A imagem é usada na capa e nos cabeçalhos das páginas dos dois relatórios. O
 
 **Nota sobre ícones do menu MyGeotab:** o ícone do menu é definido pelo JSON de instalação, antes da página do Add-In iniciar. O botão configura o ícone exibido **dentro da página**; a imagem PNG configurada separadamente é utilizada nos PDFs. Ele não altera retroativamente o ícone do menu lateral do MyGeotab.
 
-## Publicação 0.6.1
+## Publicação 0.6.2
 
 - A configuração pronta para esta hospedagem é `addin-config.json`; a cópia reutilizável é `addin-config.example.json`.
 - A interface consulta a API da base MyGeotab conectada; o GitHub Pages serve apenas os arquivos estáticos.
 - Na análise de tensão, amostras da bateria interna não são tratadas como alimentação do veículo. Quando não há dados de tensão interpretáveis, o painel indica **N/I** para qualidade elétrica. O score é heurístico e deve ser confrontado com os diagnósticos disponíveis na frota antes de decisões operacionais.
 - A correção da acentuação foi aplicada ao código. Testes em dados reais de cada base e validação visual dos PDFs continuam recomendados.
+
+## PDF Resumo ou Auditoria detalhada (versão 0.6.2)
+
+Na página Fleet Exception 360, clique em **Baixar PDF** para escolher:
+
+- **Resumo**: mantém as quatro páginas existentes (capa, indicadores, ranking e plano de ação).
+- **Auditoria detalhada**: as mesmas quatro páginas e, em seguida, uma seção paginada para cada veículo dentro dos filtros atuais, contendo regras traduzidas, nome original, data/hora, duração, estado, identificadores do evento e da regra. Regras que não possuem tradução conhecida permanecem com o nome original.
+
+O ranking oferece **Ver auditoria** em cada linha, com detalhes e exportação específica daquele veículo para CSV ou PDF. O horário é convertido para o fuso do navegador. Quando o retorno da API não inclui `exceptionCount`, uma ocorrência é contabilizada como *mínimo observado* e sinalizada com asterisco.
+
+O botão **Configurar PDF** aceita salvar a identidade na base MyGeotab quando o usuário tem a permissão exigida pela API. Uma opção explícita de salvamento **somente neste navegador** é oferecida quando a base é identificada; essa opção não compartilha o logo com outros usuários e não envia dados ao repositório.
+

@@ -4,10 +4,10 @@ import { dirname, resolve } from 'node:path';
 import { Script } from 'node:vm';
 
 const files = ['index.html', 'reports/index.html', 'exceptions/index.html', 'branding.js',
-  'health-pdf.js', 'exceptions/pdf.js', 'reports/premium.css', 'addin-config.json'];
+  'health-pdf.js', 'exceptions/pdf.js', 'exceptions/audit.js', 'exceptions/audit.css', 'reports/premium.css', 'addin-config.json'];
 const read = path => readFileSync(path, 'utf8');
 const current = JSON.parse(read('addin-config.json'));
-assert.equal(current.version, '0.6.1');
+assert.equal(current.version, '0.6.2');
 assert.equal(current.name, 'fleetHealthScore');
 assert.ok(current.items.length >= 2, 'MyGeotab exige ao menos uma página ou botão');
 for (const item of current.items) {

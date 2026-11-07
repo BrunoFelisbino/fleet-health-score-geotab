@@ -303,6 +303,77 @@
     return p1 + p2 + p3 + p4;
   }
 
+
+  /** Páginas extras criadas apenas quando o usuário escolhe "Auditoria detalhada".
+   * Os dados vêm exclusivamente de ExceptionEvent/Rule da sessão atual, sem exemplos embutidos.
+   */
+  function auditPages(events, generatedAt) {
+    const audit=window.Exception360Audit;
+    if(!audit)throw new Error('Módulo de auditoria não carregado. Atualize a página.');
+    const byVehicle=new Map();
+    events.forEach(e=>{
+      const id=String(e.veiculoId||e.deviceId||'');
+      if(!byVehicle.has(id))byVehicle.set(id,[]);
+      byVehicle.get(id).push(e);
+    });
+    const groups=[...byVehicle.values()].sort((a,b)=>{
+      const count=list=>list.reduce((sum,e)=>sum+audit.count(e).value,0);
+      return count(b)-count(a);
+    });
+    const pages=[];
+    const chunk=(list,size)=>Array.from({length:Math.ceil(list.length/size)},(_,i)=>list.slice(i*size,(i+1)*size));
+    const escape=esc;
+    function head(title,subtitle){
+      return '<div class="pdf-topbar"></div><div class="pdf-brand"><div><h1 class="pdf-title">'+escape(title)+
+        '</h1><div class="pdf-subtitle">'+escape(subtitle)+'</div></div>'+
+        (window.FleetBranding?window.FleetBranding.logoHtml('pdf-logo'):'')+'</div>';
+    }
+    function footer(plate){
+      return '<div class="pdf-footer"><span>Fleet Exception 360 • Auditoria • '+escape(plate)+
+        ' • '+escape(generatedAt)+'</span><span class="page-number"></span></div>';
+    }
+    groups.forEach(group=>{
+      const first=group[0],plate=first.placa||'Sem placa',name=first.veiculo||plate;
+      const rows=audit.rows(group),summary=audit.ruleSummary(group);
+      const uncertain=rows.filter(e=>!e.exactCount).length;
+      const total=rows.reduce((s,e)=>s+e.instances,0);
+      const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'fuso local do navegador';
+      const note='Horários no fuso '+tz+'. '+(uncertain?
+        uncertain+' evento(s) sem exceptionCount: instâncias representam mínimo observado. ':'')+
+        'Regra original e IDs foram preservados para conferência no MyGeotab.';
+      const rulesChunks=chunk(summary,11);
+      rulesChunks.forEach((part,i)=>{
+        pages.push('<div class="pdf-page pdf-audit-page">'+head('Auditoria — Regras',
+          plate+' • '+name+' • Parte '+(i+1)+' de '+rulesChunks.length)+
+          '<div class="pdf-audit-stats"><span><b>'+rows.length+'</b> eventos</span><span><b>'+
+          total+(uncertain?'*':'')+'</b> instâncias</span><span><b>'+summary.length+'</b> regras</span></div>'+
+          '<p class="pdf-audit-note">'+escape(note)+'</p>'+
+          '<table class="pdf-audit-table"><thead><tr><th>Regra em português</th><th>Nome original / ID</th>'+
+          '<th>Eventos</th><th>Instâncias</th></tr></thead><tbody>'+
+          part.map(rule=>'<tr><td><b>'+escape(rule.name)+'</b></td><td>'+
+            escape(rule.original)+(rule.id?'<small>'+escape(rule.id)+'</small>':'')+
+            '</td><td>'+rule.events+'</td><td>'+rule.instances+(rule.estimated?'*':'')+'</td></tr>').join('')+
+          '</tbody></table>'+footer(plate)+'</div>');
+      });
+      const eventChunks=chunk(rows,10);
+      eventChunks.forEach((part,i)=>{
+        pages.push('<div class="pdf-page pdf-audit-page">'+head('Auditoria — Eventos',
+          plate+' • '+name+' • Parte '+(i+1)+' de '+eventChunks.length)+
+          '<p class="pdf-audit-note">'+escape(note)+'</p>'+
+          '<table class="pdf-audit-table pdf-audit-events"><thead><tr>'+
+          '<th>Início / fim</th><th>Evento traduzido / regra original</th>'+
+          '<th>Duração</th><th>Estado</th><th>Inst.</th><th>IDs do evento / regra</th></tr></thead><tbody>'+
+          part.map(e=>'<tr><td>'+escape(e.start)+'<small>Fim: '+escape(e.end)+'</small></td>'+
+            '<td><b>'+escape(e.eventName)+'</b><small>Original: '+escape(e.originalRule)+'</small></td>'+
+            '<td>'+escape(e.duration)+'</td><td>'+escape(e.status)+'</td>'+
+            '<td>'+e.instances+(e.exactCount?'':'*')+'</td>'+
+            '<td><code>'+escape(e.id||'N/I')+'</code><small>Regra: '+escape(e.ruleId||'N/I')+'</small></td></tr>').join('')+
+          '</tbody></table>'+footer(plate)+'</div>');
+      });
+    });
+    return pages.join('');
+  }
+
   async function download(ctx) {
     const filtered = ctx && Array.isArray(ctx.filtered) ? ctx.filtered : [];
     const stage = document.getElementById('pdfStage');
@@ -343,7 +414,14 @@
       alertBox.textContent = 'O relatório será aberto na tela de impressão. Escolha "Salvar como PDF".';
     }
 
-    stage.innerHTML = buildHtml(s, filters, generatedAt);
+    const mode=ctx && ctx.mode==='audit'?'audit':'summary';
+    if(mode==='audit'&&!window.Exception360Audit){
+      if(alertBox){alertBox.className='alert err';alertBox.textContent='Módulo de auditoria indisponível. Atualize a página.'}
+      if(btn){btn.disabled=false;btn.textContent='Baixar PDF'}
+      return;
+    }
+    stage.innerHTML = buildHtml(s, filters, generatedAt) +
+      (mode==='audit'?auditPages(filtered,generatedAt):'');
     const totalPages = stage.querySelectorAll('.pdf-page').length;
     stage.style.setProperty('--total-pages', '"' + totalPages + '"');
 
