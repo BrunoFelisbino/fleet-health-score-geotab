@@ -1,0 +1,23 @@
+{
+  "name": "fleetHealthScore",
+  "version": "0.6.1",
+  "items": [
+    {
+      "url": "https://SEU_HOST_PUBLICO/index.html?v=0.6.1",
+      "path": "ActivityLink/",
+      "menuName": {
+        "en": "Fleet Health Score",
+        "pt-BR": "Fleet Health Score"
+      }
+    },
+    {
+      "url": "https://SEU_HOST_PUBLICO/exceptions/?v=0.6.1",
+      "path": "ActivityLink/",
+      "menuName": {
+        "en": "Fleet Exception 360",
+        "pt-BR": "Fleet Exception 360"
+      }
+    }
+  ],
+  "files": {}
+}

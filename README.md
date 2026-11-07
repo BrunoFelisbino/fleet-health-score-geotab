@@ -1,186 +1,68 @@
-# Fleet Health Score
+# Fleet Health Score — Add-In aberto para MyGeotab
 
-Fleet Health Score é um add-in para MyGeotab criado para ajudar equipes de suporte, implantação, operação e gestão de frotas a enxergar rapidamente quais veículos podem gerar problemas técnicos.
+Projeto reutilizável para calcular indicadores técnicos de telemetria, visualizar a saúde da frota e analisar exceções. Nenhum nome, logotipo, endereço, placa, e-mail ou dado de demonstração é necessário no código-fonte.
 
-A ideia nasceu de uma dor comum em operações de telemetria: existem muitos dados disponíveis, mas nem sempre é simples identificar quais dispositivos estão com comunicação ruim, GPS instável, tensão fora do padrão ou comportamento que indique risco de falha em campo.
+**Os dados são consultados quando o usuário utiliza o Add-In, por meio da API autenticada do MyGeotab.** O repositório não hospeda nem sincroniza automaticamente dados de clientes.
 
-Este projeto não tenta substituir os relatórios da Geotab. O foco é outro. Ele organiza sinais técnicos do dispositivo em uma visão simples de saúde da frota, ajudando a priorizar análise e ação.
+## Funcionalidades
 
-## O que o add-in faz
+- **Fleet Health Score** (página principal): saúde da frota, filtros, indicadores, mapa, CSV e PDF.
+- **Fleet Exception 360** (pasta exceptions): eventos de exceção, regras, mapa, CSV e PDF.
+- **Configurar PDF** (arquivo branding.js): envio de PNG com prévia, link do QR Code, nome, ícone e fonte, salvos no banco MyGeotab.
+- **Sem dados simulados**: sem sessão ou leituras suficientes, o painel informa a ausência. Não gera histórico fictício.
 
-O Fleet Health Score calcula uma nota técnica para cada veículo analisado. Essa nota vai de 0 a 100 e representa a saúde do dispositivo e da instalação de telemetria.
+## Instalação
 
-A base ativa considera veículos com dados válidos nos últimos 30 dias. O score é calculado olhando principalmente para os últimos 7 dias.
+1. Para instalar a versão hospedada neste repositório, utilize **addin-config.json**, já com URLs públicas e versão **0.6.1**. Para reproduzir em outro servidor, publique os arquivos em HTTPS e copie **addin-config.example.json**, substituindo SEU_HOST_PUBLICO pela origem de sua própria hospedagem.
+2. Em **MyGeotab → Administração → Sistema → Configurações do sistema → Add-Ins**, atualize a configuração antiga ou instale o JSON correspondente. Salve e atualize a página MyGeotab. O JavaScript da página não modifica automaticamente o JSON instalado na conta.
+3. O item antigo **Relatório PDF** ainda tem a URL compatível `reports/`, que abre o painel principal com a ação **Baixar PDF**. Novas instalações usam os dois menus **Fleet Health Score** e **Fleet Exception 360**.
+4. Abra o Fleet Health Score ou o Fleet Exception 360 e clique em **Configurar PDF**. Envie um **PNG** para ser usado nos cabeçalhos/capa do PDF e informe a **URL HTTPS** do QR Code. Em **Outras opções de identidade**, configure nome, ícone e fonte. O envio de imagem por URL HTTPS também é permitido.
+5. Salve. As configurações são recuperadas do banco Geotab atual em novas sessões, respeitando as permissões do usuário.
 
-O painel mostra a saúde geral da frota, os principais problemas encontrados, o ranking dos veículos mais críticos, um mapa técnico e os detalhes que explicam a perda de pontos em cada veículo.
+Não coloque URLs de clientes, imagens privadas ou segredos no repositório nem em commits. Credenciais vêm da sessão MyGeotab.
 
-### Filtro: Sem comunicação (offline) — v0.5.2
+## Armazenamento e isolamento por cliente
 
-A partir da v0.5.2, a base foca nos últimos 7 dias. Veículos sem comunicação nos 7 dias entram como offline e o relatório/dashboard busca FaultData dos últimos 30 dias apenas para esse subconjunto. Eles entram no score como **offline total (30d+)**, com teto de score 15, e também aparecem nos filtros:
+As preferências usam a API **AddInData**, com um AddInId próprio e escopo de grupo da base atual, dentro do banco MyGeotab. O limite oficial é de **10.000 caracteres por registro**. O PNG (até 5 MB na seleção) é redimensionado no navegador, preservando o formato PNG, e dividido em até 16 registros menores quando necessário. A configuração contém somente referências aos fragmentos e os campos de identidade. Se a imagem continuar grande demais, use um PNG mais simples ou uma URL HTTPS sob controle de quem instala. O arquivo PNG e o site escolhido **não entram no repositório público**.
 
-- **Sem comunicação (offline):** qualquer veículo há 7 dias ou mais sem dados (`offline`);
-- **Offline 30d+ (total):** veículo sem nenhum status nos últimos 30 dias (`offline30`);
-- **Sem dados 7 dias:** mantido por compatibilidade, equivalente ao 7d+.
+Usuários com acesso somente de leitura podem visualizar a identidade já salva, mas não têm garantida a permissão para alterá-la. O formulário exibe mensagens de erro da API. A identidade é compartilhada pelos usuários autorizados da mesma base Geotab. A substituição e a exclusão de um PNG removem os fragmentos antigos depois de confirmar a nova configuração, quando a conta tem permissão de exclusão.
 
-O painel exibe contadores de offline no topo, KPIs dedicados (**Offline (sem comunicação)** e **Offline 30d+ (total)**), linhas clicáveis em **Top problemas** para os dois filtros, e colunas `sem_comunicacao_offline` / `offline_30d_total` no CSV. Veículos offline aparecem no ranking (sem marcador no mapa, por não terem posição válida) e no detalhe com "Não — sem comunicação".
+**Ícone do menu lateral:** a Geotab define esse ícone pelo JSON de instalação, antes de executar a página do Add-In. Por isso o arquivo distribuído não fixa svgIcon. O instalador pode colocar a URL do seu próprio ícone no JSON; os ícones **dentro das páginas e PDFs** podem ser configurados após vincular a conta.
 
-## Add-ins disponíveis no menu
+Para instalar diferentes forks deste Add-In no mesmo banco Geotab, gere identificadores AddInId próprios no branding.js, evitando compartilhar coleções de configurações.
 
-Ao adicionar o conteúdo de `addin-config.json` no MyGeotab, o projeto cria dois itens no menu:
+## Origem dos dados
 
-| Menu | URL | Função |
-| --- | --- | --- |
-| Fleet Health Score | `/` | Dashboard técnico principal com KPIs, ranking, filtros, mapa, detalhes por veículo, exportação CSV e PDF integrado. |
-| Fleet Exception 360 | `/exceptions/` | Dashboard de exceções/regras de telemetria: KPIs, ranking de veículos, regras, exportar CSV e PDF integrado. |
+O Add-In consulta as entidades permitidas pela sessão (Device, DeviceStatusInfo, StatusData, FaultData, Group, Rule e ExceptionEvent). Os cálculos dependem da disponibilidade real de telemetria. A interpretação do score é auxiliar: possíveis desconexões não comprovam remoção não autorizada e merecem verificação técnica.
 
-O PDF do Fleet Health Score agora é gerado pelo botão **Baixar PDF** dentro do próprio dashboard, usando os filtros aplicados na tela. A antiga tela `/reports/` permanece no repositório apenas como fallback e não aparece mais no menu.
+## Reproduzir e contribuir
 
-## Relatório PDF integrado
+Este projeto é código livre sob a **licença MIT** (LICENSE). Você pode hospedar, usar e modificar sua cópia. Não publique dados pessoais, marcas de clientes, bancos de produção nem arquivos privados em commits, PRs e issues.
 
-O botão **Baixar PDF** do dashboard gera uma versão executiva do Fleet Health Score com foco em apresentação interna e tomada de decisão, respeitando os filtros de grupo, status, busca e problema selecionado.
+## Testes de aceite
 
-O relatório inclui:
+- Testar dashboard e exceções dentro de uma base MyGeotab autorizada.
+- Confirmar textos acentuados, indicadores, filtros e exportação CSV UTF-8.
+- Gerar os dois PDFs com e sem identidade configurada e confirmar o destino do QR Code.
+- Salvar identidade em uma base e confirmar que não aparece em outra.
+- Verificar que sem sessão ou dados suficientes o sistema não inventa estatísticas nem imagens de marca.
 
-- capa premium com logo Maas;
-- nome do banco/base analisado;
-- período de análise: base ativa de 7 dias (+30d apenas para offline) e score dos últimos 7 dias;
-- Fleet Health Index;
-- total de veículos analisados;
-- veículos críticos e em risco alto;
-- veículos sem dados há 7 dias ou mais;
-- top problemas da frota;
-- leitura executiva automática;
-- ranking técnico dos veículos mais críticos, incluindo datas de possível remoção;
-- plano de ação recomendado.
+## Configuração do PDF e do QR Code
 
-A geração premium abre uma tela de impressão preparada em páginas A4. No navegador, escolha **Salvar como PDF** para baixar o arquivo final.
+O botão **Configurar PDF** aparece no cabeçalho das duas páginas do Add-In após a conexão com o MyGeotab. Ele permite:
 
-## Exportação CSV
+- Selecionar um arquivo **PNG** (até 5 MB) para a imagem institucional do PDF, com prévia antes de salvar;
+- Substituir, remover ou usar uma imagem publicada em HTTPS;
+- Informar o endereço HTTPS do QR Code. Se o campo estiver vazio, o PDF será gerado sem QR Code;
+- Ajustar, opcionalmente, nome, ícone do painel e família tipográfica dos PDFs.
 
-Além do PDF, o dashboard permite exportar um CSV dos veículos filtrados com os campos principais:
+A imagem é usada na capa e nos cabeçalhos das páginas dos dois relatórios. O QR Code é gerado com o endereço escolhido no formulário e aparece na última página. Para renderizar o QR Code, a versão atual solicita a imagem ao serviço público `api.qrserver.com`, transmitindo **somente a URL configurada** nesse serviço. Se o QR Code não carregar, o link não deve ser considerado validado; faça a conferência no PDF gerado.
 
-- nome;
-- placa;
-- score;
-- status;
-- problema principal;
-- possível remoção não autorizada e datas dos eventos;
-- dias sem dados;
-- reboots;
-- falhas GPS;
-- tensão fora do padrão.
+**Nota sobre ícones do menu MyGeotab:** o ícone do menu é definido pelo JSON de instalação, antes da página do Add-In iniciar. O botão configura o ícone exibido **dentro da página**; a imagem PNG configurada separadamente é utilizada nos PDFs. Ele não altera retroativamente o ícone do menu lateral do MyGeotab.
 
-Esse CSV é útil para encaminhar a lista de veículos críticos para suporte, campo, implantação ou análise operacional.
+## Publicação 0.6.1
 
-## O que é analisado
-
-O score considera sinais ligados à qualidade da telemetria, como comunicação recente, falhas de GPS, reinicializações do dispositivo, tensão fora do padrão e possíveis falhas críticas do equipamento.
-
-Quando existe falha de tensão, o add-in também mostra as leituras encontradas. Isso ajuda a diferenciar uma queda leve de alimentação de um comportamento realmente crítico.
-
-## Como interpretar o score
-
-Quanto maior a nota, melhor a saúde técnica do veículo.
-
-| Score | Leitura sugerida |
-| ---: | --- |
-| 90 a 100 | Excelente |
-| 80 a 89 | Saudável |
-| 70 a 79 | Atenção |
-| 60 a 69 | Crítico |
-| Abaixo de 60 | Grave |
-
-Um veículo sem dados recentes recebe uma penalização mais forte, porque ausência de comunicação normalmente representa risco real para suporte, operação e cliente.
-
-## Indicadores principais
-
-### Fleet Health Index
-
-Mostra a média geral de saúde da frota analisada. É o número principal para entender se a operação está estável ou se existe degradação técnica.
-
-### Saúde da comunicação
-
-Ajuda a identificar veículos que estão comunicando normalmente e veículos que deixaram de enviar dados no período esperado.
-
-### Qualidade elétrica
-
-Usa as leituras de tensão para indicar possíveis problemas de alimentação, bateria, alternador, aterramento ou instalação.
-
-### Risco de instalação
-
-Agrupa veículos que apresentam sinais comuns de instalação ou equipamento com comportamento suspeito, como reboot excessivo, falha de GPS, tensão irregular ou falha crítica do device.
-
-### Sem dados nos últimos 7 dias
-
-Destaca veículos que estiveram ativos na base recente, mas não enviaram dados válidos nos últimos 7 dias.
-
-### Top problemas
-
-Mostra quais problemas aparecem com mais frequência. Ao clicar em um problema, o painel filtra automaticamente o ranking, o mapa e os indicadores para aquela condição.
-
-## Ranking técnico
-
-O ranking organiza os veículos do pior para o melhor score. A intenção é ajudar o time técnico a responder rapidamente uma pergunta simples: por onde começar?
-
-Ao selecionar um veículo, o painel lateral mostra os detalhes da análise, incluindo score, último dado, falhas de GPS, reboots, tensão mínima, tensão máxima, leituras ruins de tensão e motivos que explicam a perda de pontos.
-
-## Mapa técnico
-
-O mapa usa OpenStreetMap e mostra a última posição válida dos veículos analisados.
-
-As cores dos marcadores seguem o nível de risco do score, facilitando a identificação visual dos veículos que merecem atenção.
-
-## Público recomendado
-
-Este add-in foi pensado para pessoas que vivem a rotina da telemetria no dia a dia, principalmente suporte técnico, implantação, pós-venda, monitoramento, operações de campo, analistas de dados e gestores de frota.
-
-## Instalação no MyGeotab
-
-Publique este repositório no GitHub Pages e use o conteúdo de `addin-config.json` na área de Add-Ins do MyGeotab.
-
-A URL padrão do projeto é:
-
-```text
-https://brunofelisbino.github.io/fleet-health-score-geotab/
-```
-
-A URL da tela de exceções é:
-
-```text
-https://brunofelisbino.github.io/fleet-health-score-geotab/exceptions/
-```
-
-O nome registrado do add-in é:
-
-```text
-fleetHealthScore
-```
-
-No código, o add-in é registrado como:
-
-```js
-geotab.addin.fleetHealthScore
-```
-
-Esses nomes precisam permanecer iguais para o MyGeotab carregar o add-in corretamente.
-
-## Como testar depois de adicionar o JSON
-
-Depois de adicionar ou atualizar o `addin-config.json` no MyGeotab:
-
-1. Abra o menu do MyGeotab.
-2. Procure por **Fleet Health Score** para acessar o dashboard principal.
-3. Clique em **Atualizar análise**.
-4. Use **Baixar PDF** para gerar a versão executiva do relatório.
-5. Use **Exportar CSV** para baixar a base dos veículos analisados.
-6. Para exceções, abra **Fleet Exception 360** e use o botão **Baixar PDF** da própria tela.
-
-Se o MyGeotab continuar exibindo versão antiga, remova e adicione o add-in novamente ou limpe o cache do navegador.
-
-## Status do projeto
-
-Esta versão está em fase beta.
-
-A proposta agora é validar o comportamento em bases reais, observar se os veículos críticos fazem sentido para quem acompanha a operação e ajustar o score com base no uso prático.
-
-Sugestões, testes e feedbacks são bem-vindos.
+- A configuração pronta para esta hospedagem é `addin-config.json`; a cópia reutilizável é `addin-config.example.json`.
+- A interface consulta a API da base MyGeotab conectada; o GitHub Pages serve apenas os arquivos estáticos.
+- Na análise de tensão, amostras da bateria interna não são tratadas como alimentação do veículo. Quando não há dados de tensão interpretáveis, o painel indica **N/I** para qualidade elétrica. O score é heurístico e deve ser confrontado com os diagnósticos disponíveis na frota antes de decisões operacionais.
+- A correção da acentuação foi aplicada ao código. Testes em dados reais de cada base e validação visual dos PDFs continuam recomendados.
