@@ -1,0 +1,38 @@
+/* Janela de auditoria do Fleet Exception 360 */
+#auditDialog { color:#172033; width:min(1120px,calc(100vw - 22px)); max-width:1120px;
+  max-height:min(90dvh,950px); padding:0; border:1px solid #dce5ed; border-radius:18px;
+  box-shadow:0 32px 90px #071b3855; background:#fff; overflow:hidden; }
+#auditDialog::backdrop { background:rgba(9,19,37,.72); backdrop-filter:blur(4px); }
+.audit-shell{display:flex;flex-direction:column;max-height:min(90dvh,950px);font-family:system-ui,'Segoe UI',sans-serif}
+.audit-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 22px 14px;border-bottom:1px solid #e2e8f0}
+.audit-header h2{font-size:22px;margin:0;color:#102a43;font-weight:800;line-height:1.2}
+.audit-header p{font-size:12px;color:#607083;margin:7px 0 0}
+.audit-close{flex:none;min-height:40px;min-width:40px;border-radius:12px;background:#edf2f6;border:1px solid #d2dce6;color:#243b53;font-size:19px;cursor:pointer}
+.audit-body{overflow-y:auto;min-height:0;padding:16px 22px 22px}
+.audit-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.audit-fact{border:1px solid #dee8f0;background:#f6f9fc;border-radius:12px;padding:11px}
+.audit-fact span{display:block;color:#62748a;font-size:11px}.audit-fact strong{display:block;font-size:21px;margin-top:4px;color:#16293e}
+.audit-note{font-size:12px;color:#586a7a;line-height:1.5;margin:9px 0 17px}
+.audit-section-title{font-size:15px;font-weight:800;color:#1b354d;margin:18px 0 9px}
+.audit-table-wrap{max-width:100%;overflow:auto;border:1px solid #e0e7ef;border-radius:12px}
+.audit-table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.audit-table thead{position:sticky;top:0;z-index:1;background:#eaf0f6}
+.audit-table th,.audit-table td{text-align:left;padding:11px 12px;border-bottom:1px solid #e8edf3;vertical-align:top}
+.audit-table th{font-size:11px;color:#42566a;font-weight:800}
+.audit-table td{color:#243b50}
+.audit-table td.audit-rule{white-space:normal;min-width:180px;max-width:300px}
+.audit-table tr:last-child td{border-bottom:0}
+.audit-origin{display:block;font-size:10px;color:#718296;margin-top:4px}
+.audit-event-id{font:10px/1.4 ui-monospace,Consolas,monospace;max-width:200px;word-break:break-all;white-space:normal;color:#64748b}
+.audit-chip{display:inline-block;border:1px solid #cbd5e1;background:#f0f4f8;border-radius:7px;padding:3px 6px;font-size:11px}
+.audit-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end;margin:0 0 6px}
+.audit-actions button{background:#0d806d;color:white;padding:9px 13px;border-radius:9px;font-weight:700;font-size:12px;border:0;cursor:pointer;min-height:38px}
+.audit-actions button.audit-secondary{background:white;color:#0f655f;border:1px solid #90b8af}
+.audit-ranking-button{display:inline-flex;align-items:center;gap:4px;border:1px solid #c9e1d9;background:#e9f7f1;color:#0f725d;border-radius:8px;padding:6px 9px;font-size:11px;font-weight:800;cursor:pointer}
+.audit-ranking-button:focus-visible,#auditDialog button:focus-visible{outline:3px solid #51b8a0;outline-offset:2px}
+@media(max-width:680px){
+  #auditDialog{width:calc(100vw - 12px);max-height:96dvh;border-radius:14px}
+  .audit-shell{max-height:96dvh}.audit-header{padding:14px}.audit-header h2{font-size:18px}
+  .audit-body{padding:12px}.audit-facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .audit-actions button{flex:1}
+}
