@@ -8,7 +8,7 @@
   const MAX_PARTS = 16;
   const ALLOWED_FONTS = ['Montserrat','Inter','Roboto','Arial','system-ui'];
   const defaults = ()=>({name:'',logo:'',icon:'',website:'',font:'system-ui'});
-  let apiRef=null,recordId=null,settings=defaults(),modal=null,ready=false,logoRef=null,loadWarning='';
+  let apiRef=null,recordId=null,settings=defaults(),modal=null,ready=false,logoRef=null,loadWarning='',persistedLogo='',localOverride=false;
   const $=id=>document.getElementById(id);
   const escapeHtml=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   const rpc=(method,params)=>new Promise((resolve,reject)=>{
@@ -44,6 +44,60 @@
     });
     document.dispatchEvent(new CustomEvent('fleet-brand-updated',{detail:{hasLogo:!!settings.logo,hasIcon:!!settings.icon}}));
   }
+
+  // Add pode retornar um Id diretamente ou o objeto { id }, dependendo do cliente API.
+  function addedId(value){
+    const id=typeof value==='string'?value:(value&&value.id);
+    if(typeof id!=='string'||!id.trim())throw new Error('A API retornou um identificador inválido ao gravar os dados.');
+    return id;
+  }
+  function readableError(error){
+    const raw=String(error&&(
+      error.message||(error.error&&(error.error.message||error.error))||
+      error.description||error.name
+    )||error||'Erro desconhecido');
+    if(/undefined exception|genericexception/i.test(raw)){
+      return 'A Geotab não informou a causa da recusa. Verifique se o seu perfil possui as permissões "Gerenciar dados de Add-In" e "Visualizar dados de Add-In".';
+    }
+    if(/permission|security|clearance|not authorized|unauthoriz|forbidden|access denied|privileg|sem permissão|acesso negado/i.test(raw)){
+      return 'O usuário conectado não tem permissão suficiente para gravar esta configuração. Solicite "Gerenciar dados de Add-In" ao administrador da base.';
+    }
+    return raw.slice(0,350);
+  }
+  // Fallback opcional e explícito: nunca compartilhar o logo com outra base por engano.
+  function localKey(){
+    const creds=apiRef&&apiRef.credentials;
+    const db=creds&&creds.database;
+    if(typeof db!=='string'||!db.trim())return '';
+    return 'fleet-health-brand-local-v2:'+encodeURIComponent((creds.server||'')+'|'+db);
+  }
+  function readLocal(){
+    const key=localKey();
+    if(!key)return null;
+    try{
+      const raw=localStorage.getItem(key);
+      if(!raw)return null;
+      const data=JSON.parse(raw);
+      return data&&data.version===2?sanitize(data.brand):null;
+    }catch(e){return null}
+  }
+  function saveLocal(next){
+    const key=localKey();
+    if(!key)throw new Error('A base Geotab não foi identificada. Não é seguro armazenar esta personalização localmente.');
+    const clean=sanitize(next);
+    try { localStorage.setItem(key,JSON.stringify({version:2,brand:clean})); }
+    catch(e){throw new Error('O navegador bloqueou o armazenamento local ou não há espaço. Use uma imagem PNG menor.')}
+    settings=clean;localOverride=true;ready=true;loadWarning='Identidade salva apenas neste navegador; outros usuários não verão esta configuração.';
+    applyBrand();
+    return clean;
+  }
+  function clearLocal(){
+    const key=localKey();
+    if(!key)return;
+    try{localStorage.removeItem(key)}catch(e){ /* modo privado pode bloquear armazenamento */ }
+    localOverride=false;
+  }
+
   function makeBatchId(){
     return 'pdf-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,12);
   }
@@ -64,7 +118,7 @@
     const current=configs.sort((a,b)=>String(b.details.updatedAt||'').localeCompare(String(a.details.updatedAt||'')))[0];
     recordId=current&&current.id||null;
     settings=current?sanitize(current.details.brand):defaults();
-    logoRef=null;loadWarning='';
+    logoRef=null;loadWarning='';persistedLogo=settings.logo;
     const ref=current&&current.details&&current.details.brand&&current.details.brand.logoRef;
     if(validLogoRef(ref)){
       const parts=(rows||[]).filter(row=>row.details&&row.details.kind===IMAGE_PART_KEY&&row.details.batch===ref.batch);
@@ -74,11 +128,17 @@
       if(correct&&/^data:image\/png;base64,[a-z0-9+/=]+$/i.test(data)){settings.logo=data;logoRef={batch:ref.batch,count:ref.count}}
       else{settings.logo='';loadWarning='A imagem do PDF está incompleta; envie o PNG novamente.'}
     }
+    persistedLogo=settings.logo;
+    const browserBrand=readLocal();
+    if(browserBrand){
+      settings=browserBrand;localOverride=true;
+      loadWarning='Personalização carregada apenas deste navegador. Para compartilhar com sua base, salve na Geotab.';
+    }else localOverride=false;
     ready=true;applyBrand();
   }
   async function save(next){
     const clean=sanitize(next),oldRef=logoRef;
-    let nextRef=(oldRef&&clean.logo===settings.logo)?oldRef:null;
+    let nextRef=(oldRef&&clean.logo===persistedLogo)?oldRef:null;
     let newParts=[];
     if(!nextRef&&/^data:image\/png;base64,/i.test(clean.logo)&&clean.logo.length>PART_SIZE){
       const count=Math.ceil(clean.logo.length/PART_SIZE);
@@ -87,9 +147,8 @@
       try{
         for(let part=0;part<count;part++){
           const details={kind:IMAGE_PART_KEY,batch,part,content:clean.logo.slice(part*PART_SIZE,(part+1)*PART_SIZE)};
-          const added=await rpc('Add',{typeName:'AddInData',entity:{addInId:ADD_IN_ID,groups:[{id:'GroupCompanyId'}],details}});
-          if(!added||!added.id)throw new Error('A Geotab não confirmou o armazenamento da imagem.');
-          newParts.push({id:added.id,details});
+          const added=await rpc('Add',{typeName:'AddInData',entity:{addInId:ADD_IN_ID,details}});
+          newParts.push({id:addedId(added),details});
         }
       }catch(e){await removeParts(newParts);throw e}
       nextRef={batch,count};
@@ -101,11 +160,11 @@
       throw new Error('Configuração muito grande. Reduza o tamanho do ícone ou use URL HTTPS.');
     }
     try{
-      const entity={addInId:ADD_IN_ID,groups:[{id:'GroupCompanyId'}],details};
+      const entity={addInId:ADD_IN_ID,details};
       if(recordId){entity.id=recordId;await rpc('Set',{typeName:'AddInData',entity})}
-      else{const added=await rpc('Add',{typeName:'AddInData',entity});recordId=added&&added.id||null}
+      else{const added=await rpc('Add',{typeName:'AddInData',entity});recordId=addedId(added)}
     }catch(e){await removeParts(newParts);throw e}
-    settings=clean;logoRef=nextRef;ready=true;applyBrand();
+    settings=clean;persistedLogo=clean.logo;logoRef=nextRef;ready=true;loadWarning='';clearLocal();applyBrand();
     if(oldRef&&(!nextRef||nextRef.batch!==oldRef.batch)){
       try{
         const rows=await rpc('Get',{typeName:'AddInData',search:{addInId:ADD_IN_ID}});
@@ -184,7 +243,8 @@
     modal.style.cssText='position:fixed;inset:0;background:rgba(8,15,26,.66);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
     modal.innerHTML='<section role="dialog" aria-modal="true" aria-label="Configurar PDF e QR Code" style="background:white;color:#0f172a;padding:22px;border-radius:18px;max-width:560px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 25px 80px #0005;font:14px system-ui">'+
       '<h2 style="margin:0 0 8px">Configurar PDF</h2>'+
-      '<p style="color:#64748b;font-size:12px">Personalização desta base MyGeotab. Nenhuma imagem ou URL é enviada ao repositório público.</p>'+
+      '<p style="color:#64748b;font-size:12px">Personalização desta base MyGeotab. Nenhuma imagem ou URL é enviada ao repositório público.</p>'+ 
+      '<p id="brandStorageNotice" role="status" style="color:#7c4a08;font-size:12px;line-height:1.45;min-height:0"></p>'+
       '<label for="brandLogoFile" style="display:block;margin:14px 0 5px;font-weight:700">Imagem que aparecerá no PDF (PNG)</label>'+
       '<input id="brandLogoFile" type="file" accept=".png,image/png" style="height:auto;max-width:100%"/>'+
       '<p style="color:#64748b;font-size:11px;margin:5px 0">Imagem horizontal com fundo transparente é recomendada. Máximo de 5 MB; a imagem será redimensionada se necessário.</p>'+
@@ -200,7 +260,7 @@
       '<label style="display:block;margin:10px 0 5px">Ou enviar ícone (PNG, JPG, WebP)</label><input id="brandIconFile" type="file" accept="image/png,image/jpeg,image/webp" style="height:auto;max-width:100%"/>'+
       '<label style="display:block;margin:12px 0 5px">Fonte dos PDFs</label><select id="brandFontInput" style="width:100%;height:36px;border:1px solid #cbd5e1;border-radius:8px"><option>system-ui</option><option>Montserrat</option><option>Inter</option><option>Roboto</option><option>Arial</option></select></details>'+
       '<p id="brandMessage" aria-live="polite" style="font-size:12px;color:#64748b;min-height:20px"></p>'+
-      '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px"><button type="button" id="brandCancel" style="padding:8px 14px">Cancelar</button><button type="button" id="brandSave" style="padding:8px 14px;background:#0f766e;color:white;border:0;border-radius:8px">Salvar configuração</button></div></section>';
+      '<div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px"><button type="button" id="brandCancel" style="padding:8px 14px">Cancelar</button><button type="button" id="brandSaveLocal" style="padding:8px 14px;border:1px solid #9ca3af;background:#f8fafc;border-radius:8px">Salvar só neste navegador</button><button type="button" id="brandSave" style="padding:8px 14px;background:#0f766e;color:white;border:0;border-radius:8px">Salvar na Geotab</button></div></section>';
     document.body.appendChild(modal);
     const $preview=$('brandPdfPreview'),$status=$('brandPreviewStatus');
     let previewUrl=null;
@@ -216,6 +276,11 @@
     $('brandLogoInput').value=/^https:\/\//i.test(settings.logo)?settings.logo:'';
     $('brandIconInput').value=/^https:\/\//i.test(settings.icon)?settings.icon:'';
     $('brandFontInput').value=settings.font;
+    $('brandStorageNotice').textContent=loadWarning || 'Salvar na Geotab compartilha a identidade com os usuários autorizados da base. Salvar só neste navegador não compartilha nem sincroniza.';
+    if(!localKey()){
+      $('brandSaveLocal').disabled=true;
+      $('brandSaveLocal').title='O identificador da base não está disponível no contexto atual.';
+    }
     showPreview(settings.logo,settings.logo?'Imagem atualmente configurada':'Nenhuma imagem configurada');
     $('brandLogoFile').addEventListener('change',()=>{
       releasePreview();
@@ -225,27 +290,53 @@
     });
     $('brandCancel').onclick=close;
     modal.addEventListener('click',e=>{if(e.target===modal)close()});
-    $('brandSave').onclick=async()=>{
-      const b=$('brandSave'),message=$('brandMessage');b.disabled=true;message.textContent='Salvando na base Geotab...';
+
+    async function collectNext(){
+      const next={name:$('brandNameInput').value,website:$('brandSiteInput').value.trim(),
+        logo:$('brandLogoInput').value.trim()||settings.logo,
+        icon:$('brandIconInput').value.trim()||settings.icon,font:$('brandFontInput').value};
+      if($('brandLogoFile').files.length)next.logo=await encodePdfPng($('brandLogoFile').files[0]);
+      if($('brandRemoveLogo').checked)next.logo='';
+      if($('brandIconFile').files.length)next.icon=await encodeImage($('brandIconFile').files[0],96,96);
+      if(next.website&&!websiteUrl(next.website))throw new Error('Informe uma URL HTTPS válida para o QR Code.');
+      if(next.logo&&!imageSource(next.logo))throw new Error('Imagem do PDF inválida: envie PNG ou use URL HTTPS.');
+      if(next.icon&&!imageSource(next.icon))throw new Error('Ícone inválido: use imagem ou URL HTTPS.');
+      return next;
+    }
+    let saving=false;
+    async function performSave(mode){
+      if(saving)return;
+      const cloud=$('brandSave'),local=$('brandSaveLocal'),message=$('brandMessage');
+      saving=true;cloud.disabled=true;local.disabled=true;
+      message.style.color='#64748b';
+      message.textContent=mode==='local'?'Salvando somente no navegador...':'Salvando na base Geotab...';
       try{
-        const next={name:$('brandNameInput').value,website:$('brandSiteInput').value,
-          logo:$('brandLogoInput').value||settings.logo,icon:$('brandIconInput').value||settings.icon,font:$('brandFontInput').value};
-        if($('brandLogoInput').value.trim())next.logo=$('brandLogoInput').value.trim();
-        if($('brandLogoFile').files.length)next.logo=await encodePdfPng($('brandLogoFile').files[0]);
-        if($('brandRemoveLogo').checked)next.logo='';
-        if($('brandIconFile').files.length)next.icon=await encodeImage($('brandIconFile').files[0],96,96);
-        if(next.website&&!websiteUrl(next.website))throw new Error('Informe uma URL HTTPS válida para o QR Code.');
-        if(next.logo&&!imageSource(next.logo))throw new Error('Imagem do PDF inválida: envie PNG ou use URL HTTPS.');
-        if(next.icon&&!imageSource(next.icon))throw new Error('Ícone inválido: use imagem ou URL HTTPS.');
-        await save(next);
-        message.textContent='Configuração salva nesta base MyGeotab.';close();
-      }catch(e){message.textContent='Não foi possível salvar: '+(e.message||e);message.style.color='#b91c1c'}finally{b.disabled=false}
-    };
+        const next=await collectNext();
+        if(mode==='local')saveLocal(next);
+        else await save(next);
+        close();
+      }catch(e){
+        const readable=readableError(e);
+        message.textContent=(mode==='local'?'Não foi possível salvar no navegador: ':'Não foi possível salvar na Geotab: ')+readable;
+        message.style.color='#b91c1c';
+        if(mode!=='local'){
+          $('brandStorageNotice').textContent='A configuração não foi confirmada na Geotab. Você pode solicitar a permissão de Gerenciar dados de Add-In ou escolher salvar somente neste navegador.';
+        }
+      }finally{
+        saving=false;cloud.disabled=false;local.disabled=!localKey();
+      }
+    }
+    $('brandSave').onclick=()=>performSave('geotab');
+    $('brandSaveLocal').onclick=()=>performSave('local');
   }
   async function initialize(api){
     apiRef=api||null;
     if(!apiRef)return;
-    try{await read()}catch(e){ready=true;settings=defaults();applyBrand();console.warn('Identidade não carregada da Geotab',e)}
+    try{await read()}catch(e){
+      settings=readLocal()||defaults();localOverride=!!readLocal();ready=true;
+      loadWarning='Não foi possível carregar as configurações da Geotab: '+readableError(e);
+      applyBrand();console.warn('Leitura de AddInData indisponível. Nenhum dado da base foi registrado no console.');
+    }
     injectButton();
   }
   window.FleetBranding={initialize,get:()=>({...settings}),ready:()=>ready,
