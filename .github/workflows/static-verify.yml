@@ -17,3 +17,5 @@ jobs:
           node-version: '22'
       - name: Validar integração estática e scripts
         run: node scripts/verify-static.mjs
+      - name: Validar PDF resumo e auditoria detalhada
+        run: node scripts/verify-audit.mjs
