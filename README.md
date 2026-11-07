@@ -13,9 +13,9 @@ Projeto reutilizável para calcular indicadores técnicos de telemetria, visuali
 
 ## Instalação
 
-1. Publique estes arquivos numa hospedagem HTTPS, como GitHub Pages ou um servidor de sua escolha.
-2. Abra o arquivo addin-config.json e substitua SEU_HOST_PUBLICO pela origem HTTPS onde estão as páginas. Mantenha os caminhos index.html e exceptions/.
-3. Instale o JSON em MyGeotab → Configurações do sistema → Add-Ins.
+1. Para instalar a versão hospedada neste repositório, utilize **addin-config.json**, já com URLs públicas e versão **0.6.1**. Para reproduzir em outro servidor, publique os arquivos em HTTPS e copie **addin-config.example.json**, substituindo SEU_HOST_PUBLICO pela origem de sua própria hospedagem.
+2. Em **MyGeotab → Administração → Sistema → Configurações do sistema → Add-Ins**, atualize a configuração antiga ou instale o JSON correspondente. Salve e atualize a página MyGeotab. O JavaScript da página não modifica automaticamente o JSON instalado na conta.
+3. O item antigo **Relatório PDF** ainda tem a URL compatível `reports/`, que abre o painel principal com a ação **Baixar PDF**. Novas instalações usam os dois menus **Fleet Health Score** e **Fleet Exception 360**.
 4. Abra o Fleet Health Score ou o Fleet Exception 360 e clique em **Configurar PDF**. Envie um **PNG** para ser usado nos cabeçalhos/capa do PDF e informe a **URL HTTPS** do QR Code. Em **Outras opções de identidade**, configure nome, ícone e fonte. O envio de imagem por URL HTTPS também é permitido.
 5. Salve. As configurações são recuperadas do banco Geotab atual em novas sessões, respeitando as permissões do usuário.
 
@@ -59,3 +59,10 @@ O botão **Configurar PDF** aparece no cabeçalho das duas páginas do Add-In ap
 A imagem é usada na capa e nos cabeçalhos das páginas dos dois relatórios. O QR Code é gerado com o endereço escolhido no formulário e aparece na última página. Para renderizar o QR Code, a versão atual solicita a imagem ao serviço público `api.qrserver.com`, transmitindo **somente a URL configurada** nesse serviço. Se o QR Code não carregar, o link não deve ser considerado validado; faça a conferência no PDF gerado.
 
 **Nota sobre ícones do menu MyGeotab:** o ícone do menu é definido pelo JSON de instalação, antes da página do Add-In iniciar. O botão configura o ícone exibido **dentro da página**; a imagem PNG configurada separadamente é utilizada nos PDFs. Ele não altera retroativamente o ícone do menu lateral do MyGeotab.
+
+## Publicação 0.6.1
+
+- A configuração pronta para esta hospedagem é `addin-config.json`; a cópia reutilizável é `addin-config.example.json`.
+- A interface consulta a API da base MyGeotab conectada; o GitHub Pages serve apenas os arquivos estáticos.
+- Na análise de tensão, amostras da bateria interna não são tratadas como alimentação do veículo. Quando não há dados de tensão interpretáveis, o painel indica **N/I** para qualidade elétrica. O score é heurístico e deve ser confrontado com os diagnósticos disponíveis na frota antes de decisões operacionais.
+- A correção da acentuação foi aplicada ao código. Testes em dados reais de cada base e validação visual dos PDFs continuam recomendados.
