@@ -34,8 +34,9 @@ geotab.addin.fleetHealthScore
 2. Escolha o período (7, 14, 30 ou 90 dias). Padrão: 7 dias.
 3. Filtre por grupo, regra, veículo/placa/nome.
 4. Veja KPIs, ranking, top regras e a lista.
-5. Use Exportar CSV para suporte/campo.
+5. Use Exportar CSV ou Baixar PDF para análise e compartilhamento.
+6. Para personalizar a imagem PNG do PDF ou o link do QR Code, selecione **Configurar PDF** no cabeçalho da página.
 
 ## Status
 
-MVP dashboard de exceções/regras. Próximos passos: severidade por regra, comparativo semana a semana e opcional relatório PDF.
+MVP dashboard de exceções/regras com PDF integrado. Próximos passos: severidade por regra e comparativo semana a semana.
