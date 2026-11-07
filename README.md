@@ -58,4 +58,4 @@ O botão **Configurar PDF** aparece no cabeçalho das duas páginas do Add-In ap
 
 A imagem é usada na capa e nos cabeçalhos das páginas dos dois relatórios. O QR Code é gerado com o endereço escolhido no formulário e aparece na última página. Para renderizar o QR Code, a versão atual solicita a imagem ao serviço público `api.qrserver.com`, transmitindo **somente a URL configurada** nesse serviço. Se o QR Code não carregar, o link não deve ser considerado validado; faça a conferência no PDF gerado.
 
-**Nota sobre ícones do menu MyGeotab:** o ícone do menu é definido pelo JSON de instalação, antes da página do Add-In iniciar. O botão configura o ícone exibido **dentro da página** e no conteúdo gerado, não altera retroativamente o ícone do menu lateral do MyGeotab.
+**Nota sobre ícones do menu MyGeotab:** o ícone do menu é definido pelo JSON de instalação, antes da página do Add-In iniciar. O botão configura o ícone exibido **dentro da página**; a imagem PNG configurada separadamente é utilizada nos PDFs. Ele não altera retroativamente o ícone do menu lateral do MyGeotab.
