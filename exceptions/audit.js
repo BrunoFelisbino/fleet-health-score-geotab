@@ -58,6 +58,10 @@
       const m=raw.match(/^(?:(\d+)\.)?(\d{1,2}):(\d{2}):(\d{2})(?:\.\d+)?$/);
       ms=m?(Number(m[1]||0)*86400+Number(m[2])*3600+Number(m[3])*60+Number(m[4]))*1000:0;
     }
+    if(ms<=0&&e&&e.activeFrom&&e.activeTo){
+      const start=new Date(e.activeFrom).getTime(),end=new Date(e.activeTo).getTime();
+      if(Number.isFinite(start)&&Number.isFinite(end)&&end>=start)ms=end-start;
+    }
     if(ms<=0)return 'Não informada';
     const total=Math.floor(ms/1000),h=Math.floor(total/3600),m=Math.floor(total%3600/60),s=total%60;
     return [h?h+'h':'',m?m+'min':'',s?s+'s':''].filter(Boolean).join(' ')||'0s';
