@@ -347,24 +347,35 @@
     const totalPages = stage.querySelectorAll('.pdf-page').length;
     stage.style.setProperty('--total-pages', '"' + totalPages + '"');
 
-    try {
-      const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(stage.innerHTML));
-      const hash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16).toUpperCase();
-      const footer = stage.querySelector('.pdf-page:last-child .pdf-footer');
-      if (footer) {
-        const qr = document.createElement('img');
-        qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=' + encodeURIComponent('EX360-' + hash);
-        qr.style.width = '90px';
-        qr.style.height = '90px';
-        qr.alt = 'QR validacao';
-        const wrap = document.createElement('div');
-        wrap.style.cssText = 'position:absolute;right:54px;bottom:54px;text-align:center;font-size:8px;color:#64748b';
-        wrap.innerHTML = '<div style="margin-bottom:4px">Validacao</div>';
-        wrap.appendChild(qr);
-        wrap.innerHTML += '<div style="margin-top:4px;font-family:monospace">' + hash + '</div>';
-        footer.parentElement.appendChild(wrap);
-      }
-    } catch (e) {}
+    // QR institucional: abre o site oficial da MAAS, não um hash de validação.
+    const siteUrl = 'https://maasservicos.com.br/';
+    const footer = stage.querySelector('.pdf-page:last-child .pdf-footer');
+    if (footer) {
+      const wrap = document.createElement('div');
+      wrap.className = 'pdf-maas-qr';
+      wrap.style.cssText = 'position:absolute;right:54px;bottom:54px;text-align:center;font-size:9px;color:#475569';
+      const label = document.createElement('div');
+      label.textContent = 'CONHEÇA A MAAS';
+      label.style.cssText = 'margin-bottom:5px;font-weight:800;letter-spacing:.07em';
+      const link = document.createElement('a');
+      link.href = siteUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;color:#176644;text-decoration:none';
+      const qr = document.createElement('img');
+      qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&format=png&data=' + encodeURIComponent(siteUrl);
+      qr.style.cssText = 'width:90px;height:90px;object-fit:contain';
+      qr.alt = 'QR Code para acessar o site oficial da MAAS';
+      const caption = document.createElement('span');
+      caption.textContent = 'maasservicos.com.br';
+      caption.style.cssText = 'font-size:8px;font-weight:600';
+      link.append(qr, caption);
+      wrap.append(label, link);
+      footer.parentElement.appendChild(wrap);
+    }
+    if (document.fonts && document.fonts.ready) {
+      try { await document.fonts.ready; } catch (e) { /* fallback para Arial */ }
+    }
 
     const imgs = Array.from(stage.querySelectorAll('img'));
     await Promise.all(imgs.map(img => img.complete ? Promise.resolve() : new Promise(resolve => {
