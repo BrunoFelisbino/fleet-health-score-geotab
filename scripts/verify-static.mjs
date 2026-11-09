@@ -35,6 +35,16 @@ assert.ok(logoSrc.includes('function encodePdfPng('));
 assert.ok(logoSrc.includes('Configurar PDF'));
 assert.ok(logoSrc.includes('const IMAGE_PART_KEY'));
 const index = read('index.html');
-assert.ok(!/Maas|Rotagyn|Tibério|Felisbino|@gmail/i.test(index));
-assert.ok(!/Maas|Rotagyn|Tibério|Felisbino|@gmail/i.test(read('exceptions/index.html')));
+const exceptionsPage = read('exceptions/index.html');
+for (const [name, page] of [['index.html', index], ['exceptions/index.html', exceptionsPage]]) {
+  assert.ok(!/Maas|Rotagyn|Tibério|@gmail/i.test(page), 'Possível identificação de cliente: ' + name);
+  assert.ok(page.includes('Bruno Henrique Felisbino Gonçalves'), 'Crédito de autoria ausente: ' + name);
+  assert.ok(page.includes('class="project-credit"'), 'Rodapé de autoria ausente: ' + name);
+  assert.ok(page.includes('/LICENSE'), 'Link da licença MIT ausente: ' + name);
+}
+const license = read('LICENSE');
+assert.ok(license.startsWith('MIT License\\n'.replace('\\n', '\n')));
+assert.ok(license.includes('Copyright (c) 2026 Bruno Henrique Felisbino Gonçalves'));
+assert.ok(read('README.md').includes('CONTRIBUTING.md'));
+assert.ok(existsSync('CONTRIBUTING.md'), 'Orientações de contribuição ausentes');
 console.log('Validado: JSON Geotab, assets, páginas, UTF-8, scripts e configuração PDF/QR.');
