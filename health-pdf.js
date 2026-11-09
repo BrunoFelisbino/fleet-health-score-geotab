@@ -126,8 +126,8 @@
   </div>
   <div class="pcp-chips">
     <div class="pcp-chip"><div><div class="pcp-chip-label">Banco/Base</div><div class="pcp-chip-val">${esc(dbName)}</div></div></div>
-    <div class="pcp-chip"><div><div class="pcp-chip-label">Base ativa</div><div class="pcp-chip-val">7 dias (+30d offline)</div></div></div>
-    <div class="pcp-chip"><div><div class="pcp-chip-label">Score</div><div class="pcp-chip-val">últimos 7 dias</div></div></div>
+    <div class="pcp-chip"><div><div class="pcp-chip-label">Período do resultado</div><div class="pcp-chip-val">Últimos 7 dias</div></div></div>
+    <div class="pcp-chip"><div><div class="pcp-chip-label">Score</div><div class="pcp-chip-val">Fleet Health Index</div></div></div>
     <div class="pcp-chip"><div><div class="pcp-chip-label">Gerado em</div><div class="pcp-chip-val">${generatedAt}</div></div></div>
   </div>
   <div class="pcp-exec-card">
