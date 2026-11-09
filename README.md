@@ -91,4 +91,4 @@ Distribuído sob a **licença MIT**. Cópias e partes substanciais do software d
 
 ## Versão da distribuição
 
-A configuração pública deste repositório identifica a versão **0.6.2**. Em instalações já existentes, atualize o JSON do Add-in na conta quando necessário e valide o comportamento após a atualização. Alterações de documentação não substituem a instalação nem o teste no MyGeotab.
+A configuração pública deste repositório identifica a versão **0.6.3**. Em instalações já existentes, atualize o JSON do Add-in na conta quando necessário e valide o comportamento após a atualização. Alterações de documentação não substituem a instalação nem o teste no MyGeotab.
