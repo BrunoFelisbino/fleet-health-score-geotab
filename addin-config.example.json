@@ -13,15 +13,6 @@
       "svgIcon": "https://SEU_HOST_PUBLICO/icon.svg"
     },
     {
-      "url": "https://SEU_HOST_PUBLICO/reports/?v=0.6.5",
-      "path": "ActivityLink/",
-      "menuName": {
-        "en": "Fleet Health Reports",
-        "pt-BR": "Relatório PDF"
-      },
-      "svgIcon": "https://SEU_HOST_PUBLICO/icon.svg"
-    },
-    {
       "url": "https://SEU_HOST_PUBLICO/exceptions/?v=0.6.5",
       "path": "ActivityLink/",
       "menuName": {

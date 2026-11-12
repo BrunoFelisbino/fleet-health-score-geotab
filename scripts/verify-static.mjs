@@ -16,7 +16,7 @@ for (const item of current.items) {
   assert.ok(!item.url.includes('SEU_HOST_PUBLICO'), 'Substitua o endereço de exemplo');
 }
 assert.ok(current.items.some(item => item.url.includes('/exceptions/')));
-assert.ok(current.items.some(item => item.url.includes('/reports/')), 'Menu Relatório PDF deve estar configurado');
+assert.ok(!current.items.some(item => item.url.includes('/reports/')), 'Menu Relatório PDF não deve estar no add-in');
 for (const item of current.items) {
   assert.ok(item.svgIcon && item.svgIcon.startsWith('https://'), 'Cada menu deve ter svgIcon HTTPS');
 }
