@@ -7,10 +7,10 @@ Módulo de análise de regras e eventos de exceção do [Fleet Health Score](../
 A página utiliza `Device` (veículos ativos), `Group` (grupos), `Rule` (regras), `ExceptionEvent` (eventos) e informações de motorista quando disponíveis e autorizadas. Eventos fora da seleção de ativos não são apresentados no painel.
 
 - **Menu:** Fleet Exception 360 (URL pública `/exceptions/`).
-- **Períodos disponíveis:** **Hoje (24h)**, 7, 14, 30 e 90 dias. **Padrão atual: Hoje (24h)**.
-- **Filtros:** grupo, regra, texto da regra e veículo/placa/nome.
+- **Períodos disponíveis:** **Hoje (24h)**, 7, 14, 30 e 90 dias, além de **Personalizado** com data e hora de início e fim. **Padrão atual: Hoje (24h)**.
+- **Filtros:** grupo, regra, texto da regra, veículo/placa/nome e intervalo personalizado de data/hora.
 - **Visões:** indicadores, distribuição, ranking por instâncias, duração acumulada, mapa e auditoria por veículo.
-- **Exportação:** CSV; PDF **Resumo** (quatro páginas) ou **Auditoria detalhada** (resumo e páginas adicionais por veículo).
+- **Exportação:** CSV; PDF **Resumo** (quatro páginas) ou **Auditoria detalhada** (resumo e páginas adicionais por veículo). O PDF executivo prioriza eventos, regras, duração e estado, sem colunas de cobertura, instâncias ou identificadores internos.
 - **Identidade:** botão **Configurar PDF** para PNG, nome, ícone, fonte e destino do QR Code.
 
 A página registra `geotab.addin.fleetHealthScore`, o mesmo namespace do painel principal. Os dados são consultados pela sessão autorizada no MyGeotab, sem conteúdo demonstrativo fictício.

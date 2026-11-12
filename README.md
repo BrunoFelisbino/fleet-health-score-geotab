@@ -12,14 +12,14 @@
 | Módulo | Recursos |
 | --- | --- |
 | **Fleet Health Score** | Score técnico da frota, indicadores de comunicação e tensão, filtros por grupo/veículo, distribuição de risco, mapa, CSV e PDF. |
-| **Fleet Exception 360** | Eventos de `ExceptionEvent`, regras, ranking por instâncias, mapa, filtros, CSV, PDF resumo e auditoria detalhada por veículo. |
+| **Fleet Exception 360** | Eventos de `ExceptionEvent`, regras, ranking por instâncias, mapa, filtros com período personalizado (data e hora), CSV, PDF resumo e auditoria detalhada por veículo. |
 | **Configurar PDF** | Identidade visual opcional dos relatórios: PNG, nome, ícone, fonte e URL HTTPS usada no QR Code. |
 
 Os indicadores são **heurísticos** e dependem das informações disponíveis na base conectada. Um alerta técnico não comprova falha, remoção indevida ou conduta irregular sem investigação. Quando faltam dados, o painel deve indicar ausência ou indisponibilidade, sem criar leituras fictícias.
 
 ## Instalação no MyGeotab
 
-1. Utilize o arquivo [`addin-config.json`](addin-config.json) para a versão hospedada no GitHub Pages. Atualmente a configuração está em **0.6.2** e inclui os menus **Fleet Health Score** e **Fleet Exception 360**.
+1. Utilize o arquivo [`addin-config.json`](addin-config.json) para a versão hospedada no GitHub Pages. Atualmente a configuração está em **0.6.3** e inclui os menus **Fleet Health Score** e **Fleet Exception 360**.
 2. No **MyGeotab → Administração → Sistema → Configurações do sistema → Add-Ins**, instale a configuração JSON ou atualize o Add-in existente. A localização desse menu pode variar conforme a versão e as permissões da conta.
 3. Salve e recarregue o MyGeotab. Abra um dos dois módulos com uma sessão autorizada.
 4. Se desejar personalizar os PDFs, use **Configurar PDF** dentro do módulo e salve a identidade visual.

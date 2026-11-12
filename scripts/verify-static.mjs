@@ -7,7 +7,7 @@ const files = ['index.html', 'reports/index.html', 'exceptions/index.html', 'bra
   'health-pdf.js', 'exceptions/pdf.js', 'exceptions/audit.js', 'exceptions/audit.css', 'reports/premium.css', 'addin-config.json'];
 const read = path => readFileSync(path, 'utf8');
 const current = JSON.parse(read('addin-config.json'));
-assert.equal(current.version, '0.6.2');
+assert.equal(current.version, '0.6.3');
 assert.equal(current.name, 'fleetHealthScore');
 assert.ok(current.items.length >= 2, 'MyGeotab exige ao menos uma página ou botão');
 for (const item of current.items) {
@@ -36,6 +36,8 @@ assert.ok(logoSrc.includes('Configurar PDF'));
 assert.ok(logoSrc.includes('const IMAGE_PART_KEY'));
 const index = read('index.html');
 const exceptionsPage = read('exceptions/index.html');
+assert.ok(exceptionsPage.includes('id="dateFrom"') && exceptionsPage.includes('id="dateTo"'),
+  'Filtro personalizado de data/hora ausente em Fleet Exception 360');
 for (const [name, page] of [['index.html', index], ['exceptions/index.html', exceptionsPage]]) {
   assert.ok(!/Maas|Rotagyn|Tibério|@gmail/i.test(page), 'Possível identificação de cliente: ' + name);
   assert.ok(page.includes('Bruno Henrique Felisbino Gonçalves'), 'Crédito de autoria ausente: ' + name);

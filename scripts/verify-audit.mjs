@@ -54,12 +54,16 @@ const countPages=html=>(html.match(/class="pdf-page\b/g)||[]).length;
 assert.equal(countPages(captured[0]),4,'Resumo preserva as quatro páginas originais.');
 assert.ok(countPages(captured[1])>countPages(captured[0]),'Auditoria acrescenta páginas.');
 assert.ok(!captured[0].includes('Auditoria — Eventos'),'Resumo não deve conter auditoria.');
-for(const value of ['Frenagem brusca','Harsh Braking','Regra especial','evt-a','evt-b',
-                    'rule-a','rule-b','Reconhecido','sem exceptionCount']){
+for(const value of ['Frenagem brusca','Harsh Braking','Regra especial','Reconhecido']){
   assert.ok(captured[1].includes(value),'Dado auditável ausente: '+value);
 }
+assert.ok(!captured[0].includes('Cobertura'),'Resumo não deve exibir cobertura da frota.');
+assert.ok(!captured[1].includes('IDs do evento'),'Auditoria não deve exibir IDs de evento/regra.');
+assert.ok(!captured[1].includes('sem exceptionCount'),'Auditoria não deve exibir nota de instâncias.');
+assert.ok(!captured[1].includes('<th>Inst.</th>'),'Auditoria não deve exibir coluna de instâncias.');
+assert.ok(captured[0].includes('Média de eventos'),'Resumo deve exibir a média de eventos por veículo.');
 const ui=read('exceptions/index.html');
 assert.ok(ui.includes('Resumo — formato atual') && ui.includes('Auditoria detalhada'));
 assert.ok(ui.includes('data-audit-id='));
 assert.ok(ui.includes('PDF detalhado deste veículo'));
-console.log('Auditoria e PDF: dois formatos, tradução segura, originais e IDs preservados.');
+console.log('Auditoria e PDF: dois formatos, tradução segura, período personalizado e colunas essenciais.');

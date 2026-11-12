@@ -10,7 +10,13 @@
     .replace(/"/g, '&quot;');
 
   const fmtNum = n => Number(n || 0).toLocaleString('pt-BR');
-  const pct = (a, b) => b ? Math.round((a / b) * 100) : 0;
+  const plur = (n, singular, plural) => Number(n) === 1 ? singular : plural;
+  function fmtRange(from, to) {
+    const f = d => d instanceof Date && !isNaN(d.getTime())
+      ? d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+      : '-';
+    return f(from) + ' até ' + f(to);
+  }
   const inst = e => {
     const raw = e && e.exceptionCount;
     if (raw == null || raw === '') return 1;
@@ -49,9 +55,9 @@
     return el.options[el.selectedIndex].textContent || '';
   }
 
-  function filterList(problemFilter, rulesLabel) {
+  function filterList(problemFilter, rulesLabel, periodLabel) {
     const parts = [];
-    const period = selectedText('periodFilter');
+    const period = periodLabel || selectedText('periodFilter');
     if (period) parts.push('Período: ' + period);
     const group = document.getElementById('groupFilter');
     if (group && group.value) parts.push('Grupo: ' + selectedText('groupFilter'));
@@ -122,39 +128,38 @@
       rulesCount,
       vehicles,
       vehicleCount,
-      activeCount,
-      coverage: pct(vehicleCount, activeCount)
+      activeCount
     };
   }
 
-  function statusFor(instances) {
-    if (instances >= 1000) return { label: 'Crítico', cls: 'pdf-risk' };
-    if (instances >= 300) return { label: 'Atenção', cls: 'pdf-warn' };
+  function statusFor(events) {
+    if (events >= 50) return { label: 'Crítico', cls: 'pdf-risk' };
+    if (events >= 10) return { label: 'Atenção', cls: 'pdf-warn' };
     return { label: 'Normal', cls: 'pdf-ok' };
   }
 
-  function readExecutive(s, filters) {
+  function readExecutive(s) {
     const top = s.rules[0];
-    const coverage = s.activeCount ? s.coverage + '%' : '-';
     const parts = [];
-    parts.push('Foram registrados ' + fmtNum(s.events) + ' eventos no período em ' + fmtNum(s.vehicleCount) + ' veículos' + (coverage !== '-' ? ' (' + coverage + ' da frota ativa)' : '') + '.');
-    if (top) parts.push('A regra com maior volume foi "' + top.name + '", com ' + fmtNum(top.events) + ' eventos.');
-    if (s.buckets[2]) parts.push('Há ' + fmtNum(s.buckets[2]) + ' evento(s) com duração igual ou superior a 30 segundos, que devem ser priorizados na análise operacional.');
-    if (filters.length) parts.push('Este relatório considera somente os filtros aplicados: ' + filters.join(' • ') + '.');
+    if (!s.events) return 'Nenhum evento de exceção foi encontrado no período e nos filtros selecionados.';
+    parts.push('Foram registrados ' + fmtNum(s.events) + ' ' + plur(s.events, 'evento', 'eventos') + ' no período, envolvendo ' + fmtNum(s.vehicleCount) + ' ' + plur(s.vehicleCount, 'veículo', 'veículos') + '.');
+    if (top) parts.push('A regra com maior volume foi "' + top.name + '", com ' + fmtNum(top.events) + ' ' + plur(top.events, 'evento', 'eventos') + '.');
+    if (s.buckets[2]) parts.push('Há ' + fmtNum(s.buckets[2]) + ' ' + plur(s.buckets[2], 'evento', 'eventos') + ' com duração igual ou superior a 30 segundos; esses casos devem ser priorizados na análise operacional.');
     return parts.join(' ');
   }
 
   function buildHtml(s, filters, generatedAt, periodLabel) {
     const top = s.rules[0];
-    const coverage = s.coverage;
-    const ringColor = coverage >= 50 ? '#ef4444' : coverage >= 25 ? '#f97316' : '#10b981';
-    const ringGrad = 'conic-gradient(' + ringColor + ' 0% ' + (coverage * 3.6) + 'deg, rgba(255,255,255,0.12) ' + (coverage * 3.6) + 'deg 360deg)';
+    const criticalShare = s.events ? Math.round((s.buckets[2] / s.events) * 100) : 0;
+    const ringColor = criticalShare >= 50 ? '#ef4444' : criticalShare >= 25 ? '#f97316' : '#10b981';
+    const ringGrad = 'conic-gradient(' + ringColor + ' 0% ' + (criticalShare * 3.6) + 'deg, rgba(255,255,255,0.12) ' + (criticalShare * 3.6) + 'deg 360deg)';
     const maxRule = Math.max(1, ...s.rules.map(r => r.events));
     const filterText = filters.length ? filters.join(' • ') : 'Sem filtros adicionais';
     const maxBucket = Math.max(1, ...s.buckets);
-    const exec = readExecutive(s, filters);
+    const exec = readExecutive(s);
     const topVehicles = s.vehicles.slice(0, 5);
     const topRules = s.rules.slice(0, 8);
+    const avgPerVehicle = s.vehicleCount ? (s.events / s.vehicleCount).toFixed(1).replace('.', ',') : '0';
 
     const p1 = `
 <div class="pdf-page pdf-cover-page">
@@ -183,19 +188,18 @@
       <div class="pcp-exec-header"><span class="pcp-shield">360</span> Resumo Executivo</div>
       <div class="pcp-exec-rule"></div>
       <p>${esc(exec)}</p>
-      <p>${esc(filterText)}.</p>
       <div class="pcp-kpi-row">
         <div class="pcp-kpi-item"><b>${fmtNum(s.vehicleCount)}</b><small>Veículos com<br>exceção</small></div>
         <div class="pcp-kpi-item warn"><b>${fmtNum(s.rulesCount)}</b><small>Regras<br>acionadas</small></div>
-        <div class="pcp-kpi-item red"><b>${fmtNum(s.rulesCount)}</b><small>Regras<br>acionadas</small></div>
-        <div class="pcp-kpi-item green"><b>${coverage}%</b><small>Cobertura<br>da frota</small></div>
+        <div class="pcp-kpi-item red"><b>${fmtNum(s.buckets[2])}</b><small>Eventos com<br>30s ou mais</small></div>
+        <div class="pcp-kpi-item green"><b>${avgPerVehicle}</b><small>Média de eventos<br>por veículo</small></div>
       </div>
     </div>
     <div class="pcp-index-wrap">
       <div class="pcp-ring-outer" style="background:${ringGrad}">
         <div class="pcp-ring-inner">
-          <b style="color:${ringColor}">${coverage}%</b>
-          <span>da frota</span>
+          <b style="color:${ringColor}">${criticalShare}%</b>
+          <span>eventos ≥ 30s</span>
           <div class="pcp-pulse">360</div>
         </div>
       </div>
@@ -213,8 +217,8 @@
   </div>
   <div class="pdf-grid-4">
     <div class="pdf-kpi"><small>Eventos</small><b style="color:#ef4444">${fmtNum(s.events)}</b><span>no período</span></div>
-    <div class="pdf-kpi"><small>Cobertura</small><b style="color:#10b981">${s.activeCount ? s.coverage + '%' : '-'}</b><span>da frota ativa</span></div>
-    <div class="pdf-kpi"><small>Veículos com exceção</small><b>${fmtNum(s.vehicleCount)}</b><span>${s.activeCount ? coverage + '% da frota ativa' : 'base filtrada'}</span></div>
+    <div class="pdf-kpi"><small>Eventos com 30s ou mais</small><b style="color:#f97316">${fmtNum(s.buckets[2])}</b><span>prioridade operacional</span></div>
+    <div class="pdf-kpi"><small>Veículos com exceção</small><b>${fmtNum(s.vehicleCount)}</b><span>no filtro aplicado</span></div>
     <div class="pdf-kpi"><small>Regras acionadas</small><b style="color:#0ea5e9">${fmtNum(s.rulesCount)}</b><span>distintas no filtro</span></div>
   </div>
   <div class="pdf-section">
@@ -233,7 +237,7 @@
         <div class="pdf-section-title">Leitura executiva</div>
         <div class="pdf-summary-box"><b>Filtros aplicados:</b> ${esc(filterText)}</div>
         <div class="pdf-summary-box"><b>Condição atual:</b> ${esc(exec)}</div>
-        <div class="pdf-summary-box"><b>Prioridade:</b> atuar primeiro nas regras de maior volume e nos veículos com mais instâncias. Validar reincidência, configuração da regra e causa operacional antes de tratar como falha do device.</div>
+        <div class="pdf-summary-box"><b>Prioridade:</b> atuar primeiro nas regras de maior volume e nos veículos com mais eventos. Validar reincidência, configuração da regra e causa operacional antes de tratar como falha do device.</div>
 
       </div>
     </div>
@@ -260,7 +264,7 @@
     </tr></thead>
     <tbody>${s.vehicles.map((v, i) => {
        const st = statusFor(v.events);
-      return `<tr class="${v.instances >= 1000 ? 'pdf-row-risk' : ''}">
+      return `<tr class="${v.events >= 50 ? 'pdf-row-risk' : ''}">
         <td>${i + 1}</td>
         <td style="font-weight:900;color:#b91c1c">${fmtNum(v.events)}</td>
         <td style="font-weight:800;font-family:monospace;font-size:9px">${esc(v.placa || '-')}</td>
@@ -269,11 +273,11 @@
         <td style="font-size:9px">${fmtDate(v.last)}</td>
         <td><span class="pdf-badge ${st.cls}">${st.label}</span></td>
       </tr>`;
-    }).join('') || '<tr><td colspan="8">Nenhum evento encontrado.</td></tr>'}</tbody>
+    }).join('') || '<tr><td colspan="7">Nenhum evento encontrado.</td></tr>'}</tbody>
   </table>
   <div class="pdf-footer" style="left:54px;right:54px">
     <div class="pdf-legend">
-      <span class="pdf-legend-item"><i class="risk"></i> Instâncias críticas (1.000+)</span>
+      <span class="pdf-legend-item"><i class="risk"></i> Alto volume de eventos (50+)</span>
       <span>Fleet Exception 360 • Ranking</span>
     </div>
     <span class="page-number"></span>
@@ -289,8 +293,8 @@
   </div>
   <div class="pdf-action"><h4>Prioridade 1 — regra de maior volume</h4><p>${top ? 'A regra "' + esc(top.name) + '" concentra ' + fmtNum(top.events) + ' eventos no filtro. Revisar a configuração da regra, o contexto operacional e a causa raiz antes de classificar como falha do veículo ou do dispositivo.' : 'Não há regra acionada no filtro atual.'}</p></div>
   <div class="pdf-action"><h4>Prioridade 2 — veículos reincidentes</h4><p>${topVehicles.length ? 'Começar pelos veículos ' + topVehicles.map(v => esc(v.placa || v.veiculo)).join(', ') + '. Validar turno, rota, operador e histórico de eventos para separar comportamento operacional de problema técnico.' : 'Nenhum veículo com evento no filtro.'}</p></div>
-  <div class="pdf-action"><h4>Prioridade 3 — eventos de longa duração</h4><p>${fmtNum(s.buckets[2])} evento(s) com duração igual ou superior a 30 segundos. Priorizar a investigação desses casos, pois tendem a representar maior impacto operacional.</p></div>
-  <div class="pdf-action"><h4>Prioridade 4 — cobertura e validação do filtro</h4><p>${s.activeCount ? fmtNum(s.vehicleCount) + ' veículo(s) com exceção representam ' + coverage + '% da frota ativa considerada.' : 'A base ativa não foi identificada nesta execução.'} Conferir o período e os filtros antes de comparar bases ou períodos diferentes.</p></div>
+  <div class="pdf-action"><h4>Prioridade 3 — eventos de longa duração</h4><p>${fmtNum(s.buckets[2])} ${plur(s.buckets[2], 'evento', 'eventos')} com duração igual ou superior a 30 segundos. Priorizar a investigação desses casos, pois tendem a representar maior impacto operacional.</p></div>
+  <div class="pdf-action"><h4>Prioridade 4 — validação do período</h4><p>${fmtNum(s.vehicleCount)} ${plur(s.vehicleCount, 'veículo apresenta', 'veículos apresentam')} exceções no período selecionado. Conferir as datas, os filtros e a base ativa antes de comparar períodos diferentes.</p></div>
   <div class="pdf-section">
     <div class="pdf-section-title">Síntese</div>
     <div class="pdf-summary-box">Exceção só vira ação quando a regra, o veículo e o contexto operacional são analisados juntos. Use este relatório como priorização, não como conclusão isolada.</div>
@@ -314,10 +318,7 @@
       if(!byVehicle.has(id))byVehicle.set(id,[]);
       byVehicle.get(id).push(e);
     });
-    const groups=[...byVehicle.values()].sort((a,b)=>{
-      const count=list=>list.reduce((sum,e)=>sum+audit.count(e).value,0);
-      return count(b)-count(a);
-    });
+    const groups=[...byVehicle.values()].sort((a,b)=>b.length-a.length);
     const pages=[];
     const chunk=(list,size)=>Array.from({length:Math.ceil(list.length/size)},(_,i)=>list.slice(i*size,(i+1)*size));
     const escape=esc;
@@ -333,24 +334,19 @@
     groups.forEach(group=>{
       const first=group[0],plate=first.placa||'Sem placa',name=first.veiculo||plate;
       const rows=audit.rows(group),summary=audit.ruleSummary(group);
-      const uncertain=rows.filter(e=>!e.exactCount).length;
-      const total=rows.reduce((s,e)=>s+e.instances,0);
       const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'fuso local do navegador';
-      const note='Horários no fuso '+tz+'. '+(uncertain?
-        uncertain+' evento(s) sem exceptionCount: instâncias representam mínimo observado. ':'')+
-        'Regra original e IDs foram preservados para conferência no MyGeotab.';
+      const note='Horários no fuso '+tz+'. A regra original foi preservada para conferência no MyGeotab.';
       const rulesChunks=chunk(summary,11);
       rulesChunks.forEach((part,i)=>{
         pages.push('<div class="pdf-page pdf-audit-page">'+head('Auditoria — Regras',
           plate+' • '+name+' • Parte '+(i+1)+' de '+rulesChunks.length)+
-          '<div class="pdf-audit-stats"><span><b>'+rows.length+'</b> eventos</span><span><b>'+
-          total+(uncertain?'*':'')+'</b> instâncias</span><span><b>'+summary.length+'</b> regras</span></div>'+
+          '<div class="pdf-audit-stats"><span><b>'+rows.length+'</b> eventos</span><span><b>'+summary.length+'</b> regras</span></div>'+
           '<p class="pdf-audit-note">'+escape(note)+'</p>'+
-          '<table class="pdf-audit-table"><thead><tr><th>Regra em português</th><th>Nome original / ID</th>'+
-          '<th>Eventos</th><th>Instâncias</th></tr></thead><tbody>'+
+          '<table class="pdf-audit-table"><thead><tr><th>Regra em português</th><th>Nome original</th>'+
+          '<th>Eventos</th></tr></thead><tbody>'+
           part.map(rule=>'<tr><td><b>'+escape(rule.name)+'</b></td><td>'+
-            escape(rule.original)+(rule.id?'<small>'+escape(rule.id)+'</small>':'')+
-            '</td><td>'+rule.events+'</td><td>'+rule.instances+(rule.estimated?'*':'')+'</td></tr>').join('')+
+            escape(rule.original)+
+            '</td><td>'+rule.events+'</td></tr>').join('')+
           '</tbody></table>'+footer(plate)+'</div>');
       });
       const eventChunks=chunk(rows,10);
@@ -360,12 +356,10 @@
           '<p class="pdf-audit-note">'+escape(note)+'</p>'+
           '<table class="pdf-audit-table pdf-audit-events"><thead><tr>'+
           '<th>Início / fim</th><th>Evento traduzido / regra original</th>'+
-          '<th>Duração</th><th>Estado</th><th>Inst.</th><th>IDs do evento / regra</th></tr></thead><tbody>'+
+          '<th>Duração</th><th>Estado</th></tr></thead><tbody>'+
           part.map(e=>'<tr><td>'+escape(e.start)+'<small>Fim: '+escape(e.end)+'</small></td>'+
             '<td><b>'+escape(e.eventName)+'</b><small>Original: '+escape(e.originalRule)+'</small></td>'+
-            '<td>'+escape(e.duration)+'</td><td>'+escape(e.status)+'</td>'+
-            '<td>'+e.instances+(e.exactCount?'':'*')+'</td>'+
-            '<td><code>'+escape(e.id||'N/I')+'</code><small>Regra: '+escape(e.ruleId||'N/I')+'</small></td></tr>').join('')+
+            '<td>'+escape(e.duration)+'</td><td>'+escape(e.status)+'</td></tr>').join('')+
           '</tbody></table>'+footer(plate)+'</div>');
       });
     });
@@ -397,10 +391,12 @@
     }
 
     window.__exception360Vehicles = Array.isArray(ctx.vehicles) ? ctx.vehicles : [];
-    const filters = filterList(ctx.problemFilter, ctx.rulesLabel);
     const s = summarize(filtered);
     const generatedAt = new Date().toLocaleString('pt-BR');
-    const periodLabel = ctx.periodFrom && ctx.periodTo ? new Date(ctx.periodFrom).toLocaleDateString('pt-BR') + ' a ' + new Date(ctx.periodTo).toLocaleDateString('pt-BR') : (selectedText('periodFilter') || 'Hoje (24h)');
+    const periodLabel = ctx.periodLabel || (ctx.periodFrom && ctx.periodTo
+      ? fmtRange(new Date(ctx.periodFrom), new Date(ctx.periodTo))
+      : (selectedText('periodFilter') || 'Hoje (24h)'));
+    const filters = filterList(ctx.problemFilter, ctx.rulesLabel, periodLabel);
 
     if (btn) {
       btn.disabled = true;
