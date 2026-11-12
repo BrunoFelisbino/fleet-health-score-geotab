@@ -68,8 +68,9 @@
   #pdfStage .pdf-audit-table td small {display:block;font-size:8px;color:#6a7b8a;margin-top:4px;overflow-wrap:anywhere}
   #pdfStage .pdf-audit-table td code {font-size:8px;overflow-wrap:anywhere;}
   #pdfStage .pdf-audit-table th:nth-child(3) {text-align:left}
-  #pdfStage .pdf-audit-events th:nth-child(1) {width:24%}
-  #pdfStage .pdf-audit-events th:nth-child(2) {width:38%}
-  #pdfStage .pdf-audit-events th:nth-child(3) {width:16%}
-  #pdfStage .pdf-audit-events th:nth-child(4) {width:22%}
+  #pdfStage .pdf-audit-events th:nth-child(1) {width:22%}
+  #pdfStage .pdf-audit-events th:nth-child(2) {width:34%}
+  #pdfStage .pdf-audit-events th:nth-child(3) {width:15%}
+  #pdfStage .pdf-audit-events th:nth-child(4) {width:13%}
+  #pdfStage .pdf-audit-events th:nth-child(5) {width:16%}
 }

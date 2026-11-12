@@ -1,10 +1,10 @@
 {
   "name": "fleetHealthScore",
   "supportEmail": "poze1988@gmail.com",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "items": [
     {
-      "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/?v=0.6.4",
+      "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/?v=0.6.5",
       "path": "ActivityLink/",
       "menuName": {
         "en": "Fleet Health Score",
@@ -13,7 +13,7 @@
       "svgIcon": "https://brunofelisbino.github.io/fleet-health-score-geotab/icon.svg"
     },
     {
-      "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/reports/?v=0.6.4",
+      "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/reports/?v=0.6.5",
       "path": "ActivityLink/",
       "menuName": {
         "en": "Fleet Health Reports",
@@ -22,7 +22,7 @@
       "svgIcon": "https://brunofelisbino.github.io/fleet-health-score-geotab/icon.svg"
     },
     {
-      "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/exceptions/?v=0.6.4",
+      "url": "https://brunofelisbino.github.io/fleet-health-score-geotab/exceptions/?v=0.6.5",
       "path": "ActivityLink/",
       "menuName": {
         "en": "Fleet Exception 360",

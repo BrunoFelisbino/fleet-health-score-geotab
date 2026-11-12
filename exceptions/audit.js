@@ -76,6 +76,7 @@
   function rows(events){
     return (events||[]).map(e=>{
       const original=originalRule(e),translated=ruleTranslation(original),instances=count(e);
+      const maxSpeed=(()=>{const raw=e&&e.excMaxSpeed,n=raw===null||raw===undefined||raw===''?NaN:Number(raw);return Number.isFinite(n)&&n>=0?n:null})();
       return {
         id:String(e.id||''),vehicleId:String(e.veiculoId||e.deviceId||''),
         vehicle:String(e.veiculo||''),plate:String(e.placa||''),
@@ -84,7 +85,8 @@
         start:displayTime(e.activeFrom),end:displayTime(e.activeTo),
         startIso:isoTime(e.activeFrom),endIso:isoTime(e.activeTo),
         duration:durationText(e),status:stateLabel(e.state),instances:instances.value,
-        exactCount:instances.exact,driver:String(e.driver||'')
+        exactCount:instances.exact,driver:String(e.driver||''),
+        maxSpeed,speed:maxSpeed==null?'—':Math.round(maxSpeed)+' km/h'
       };
     }).sort((a,b)=>(b.startIso||'').localeCompare(a.startIso||''));
   }
@@ -100,8 +102,8 @@
   }
   function escapeCsv(value){return '"'+String(value??'').replace(/"/g,'""')+'"'}
   function exportCsv(list){
-    const headings=['ID evento','ID regra','Veículo','Placa','Evento (pt-BR)','Regra (pt-BR)','Regra original','Início (horário local)','Fim (horário local)','Início ISO UTC','Fim ISO UTC','Duração','Estado','Instâncias (mínimo quando sem contagem)','Contagem exata','Condutor'];
-    const data=rows(list).map(e=>[e.id,e.ruleId,e.vehicle,e.plate,e.eventName,e.rule,e.originalRule,e.start,e.end,e.startIso,e.endIso,e.duration,e.status,e.instances,e.exactCount?'Sim':'Não',e.driver]);
+    const headings=['ID evento','ID regra','Veículo','Placa','Evento (pt-BR)','Regra (pt-BR)','Regra original','Início (horário local)','Fim (horário local)','Início ISO UTC','Fim ISO UTC','Duração','Velocidade máxima (km/h)','Estado','Instâncias (mínimo quando sem contagem)','Contagem exata','Condutor'];
+    const data=rows(list).map(e=>[e.id,e.ruleId,e.vehicle,e.plate,e.eventName,e.rule,e.originalRule,e.start,e.end,e.startIso,e.endIso,e.duration,e.maxSpeed==null?'':e.maxSpeed,e.status,e.instances,e.exactCount?'Sim':'Não',e.driver]);
     return '\uFEFF'+[headings,...data].map(r=>r.map(escapeCsv).join(';')).join('\n');
   }
   root.Exception360Audit={rows,ruleSummary,ruleTranslation,stateLabel,exportCsv,count,displayTime};

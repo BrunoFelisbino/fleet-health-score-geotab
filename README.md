@@ -13,14 +13,14 @@
 | --- | --- |
 | **Fleet Health Score** | Score técnico da frota, indicadores de comunicação e tensão, filtros por grupo/veículo, distribuição de risco, mapa, CSV e PDF. |
 | **Fleet Health Reports** | Entrada de compatibilidade para o relatório PDF existente (`reports/`). |
-| **Fleet Exception 360** | Eventos de `ExceptionEvent`, regras, ranking por instâncias, mapa, filtros com período personalizado (data e hora), CSV, PDF resumo e auditoria detalhada por veículo. |
+| **Fleet Exception 360** | Eventos de `ExceptionEvent`, regras, ranking por instâncias, mapa, filtros com período personalizado (data e hora), CSV, PDF resumo e auditoria detalhada por veículo, incluindo velocidade máxima por evento. |
 | **Configurar PDF** | Identidade visual opcional dos relatórios: PNG, nome, ícone, fonte e URL HTTPS usada no QR Code. |
 
 Os indicadores são **heurísticos** e dependem das informações disponíveis na base conectada. Um alerta técnico não comprova falha, remoção indevida ou conduta irregular sem investigação. Quando faltam dados, o painel deve indicar ausência ou indisponibilidade, sem criar leituras fictícias.
 
 ## Instalação no MyGeotab
 
-1. Utilize o arquivo [`addin-config.json`](addin-config.json) para a versão hospedada no GitHub Pages. Atualmente a configuração está em **0.6.4**, inclui `supportEmail`, ícone SVG e os menus **Fleet Health Score**, **Relatório PDF** e **Fleet Exception 360**.
+1. Utilize o arquivo [`addin-config.json`](addin-config.json) para a versão hospedada no GitHub Pages. Atualmente a configuração está em **0.6.5**, inclui `supportEmail`, ícone SVG e os menus **Fleet Health Score**, **Relatório PDF** e **Fleet Exception 360**.
 2. No **MyGeotab → Administração → Sistema → Configurações do sistema → Add-Ins**, instale a configuração JSON ou atualize o Add-in existente. A localização desse menu pode variar conforme a versão e as permissões da conta.
 3. Salve e recarregue o MyGeotab. Abra um dos módulos com uma sessão autorizada.
 4. Se desejar personalizar os PDFs, use **Configurar PDF** dentro do módulo e salve a identidade visual.
@@ -51,9 +51,9 @@ Em **Configurar PDF**, o usuário autorizado pode definir uma imagem PNG (até 5
 No **Fleet Exception 360**, a ação **Baixar PDF** oferece dois formatos:
 
 - **Resumo:** quatro páginas com capa, indicadores, ranking e plano de ação.
-- **Auditoria detalhada:** as páginas de resumo e uma seção paginada com eventos por veículo, regras traduzidas quando disponíveis, nomes originais, horários, duração, estado e identificadores.
+- **Auditoria detalhada:** as páginas de resumo e uma seção paginada com eventos por veículo, regras traduzidas quando disponíveis, nomes originais, horários, duração, velocidade máxima, estado e identificadores.
 
-Cada veículo do ranking permite abrir sua auditoria e exportar os dados correspondentes. Horários exibidos são convertidos para o fuso do navegador; quando a API não fornece a contagem exata de instâncias, o relatório sinaliza o mínimo observado.
+Cada veículo do ranking permite abrir sua auditoria e exportar os dados correspondentes. Horários exibidos são convertidos para o fuso do navegador; quando a API não fornece a contagem exata de instâncias, o relatório sinaliza o mínimo observado. A velocidade máxima é calculada a partir dos registros de GPS (`LogRecord.speed`) dentro do intervalo de cada evento; quando não há amostra, o valor é indicado como indisponível.
 
 ## Estrutura do projeto
 
@@ -92,4 +92,4 @@ Distribuído sob a **licença MIT**. Cópias e partes substanciais do software d
 
 ## Versão da distribuição
 
-A configuração pública deste repositório identifica a versão **0.6.4**. Em instalações já existentes, atualize o JSON do Add-in na conta quando necessário e valide o comportamento após a atualização. Alterações de documentação não substituem a instalação nem o teste no MyGeotab.
+A configuração pública deste repositório identifica a versão **0.6.5**. Em instalações já existentes, atualize o JSON do Add-in na conta quando necessário e valide o comportamento após a atualização. Alterações de documentação não substituem a instalação nem o teste no MyGeotab.

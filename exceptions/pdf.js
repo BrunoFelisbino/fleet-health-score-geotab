@@ -335,7 +335,7 @@
       const first=group[0],plate=first.placa||'Sem placa',name=first.veiculo||plate;
       const rows=audit.rows(group),summary=audit.ruleSummary(group);
       const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'fuso local do navegador';
-      const note='Horários no fuso '+tz+'. A regra original foi preservada para conferência no MyGeotab.';
+      const note='Horários no fuso '+tz+'. A regra original foi preservada para conferência no MyGeotab. Velocidade máxima calculada pelos registros de GPS (LogRecord) no intervalo de cada evento.';
       const rulesChunks=chunk(summary,11);
       rulesChunks.forEach((part,i)=>{
         pages.push('<div class="pdf-page pdf-audit-page">'+head('Auditoria — Regras',
@@ -356,10 +356,10 @@
           '<p class="pdf-audit-note">'+escape(note)+'</p>'+
           '<table class="pdf-audit-table pdf-audit-events"><thead><tr>'+
           '<th>Início / fim</th><th>Evento traduzido / regra original</th>'+
-          '<th>Duração</th><th>Estado</th></tr></thead><tbody>'+
+          '<th>Duração</th><th>Vel. máx.</th><th>Estado</th></tr></thead><tbody>'+
           part.map(e=>'<tr><td>'+escape(e.start)+'<small>Fim: '+escape(e.end)+'</small></td>'+
             '<td><b>'+escape(e.eventName)+'</b><small>Original: '+escape(e.originalRule)+'</small></td>'+
-            '<td>'+escape(e.duration)+'</td><td>'+escape(e.status)+'</td></tr>').join('')+
+            '<td>'+escape(e.duration)+'</td><td>'+escape(e.speed)+'</td><td>'+escape(e.status)+'</td></tr>').join('')+
           '</tbody></table>'+footer(plate)+'</div>');
       });
     });

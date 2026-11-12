@@ -1,10 +1,10 @@
 {
   "name": "fleetHealthScore",
   "supportEmail": "SEU_EMAIL_DE_SUPORTE",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "items": [
     {
-      "url": "https://SEU_HOST_PUBLICO/?v=0.6.4",
+      "url": "https://SEU_HOST_PUBLICO/?v=0.6.5",
       "path": "ActivityLink/",
       "menuName": {
         "en": "Fleet Health Score",
@@ -13,7 +13,7 @@
       "svgIcon": "https://SEU_HOST_PUBLICO/icon.svg"
     },
     {
-      "url": "https://SEU_HOST_PUBLICO/reports/?v=0.6.4",
+      "url": "https://SEU_HOST_PUBLICO/reports/?v=0.6.5",
       "path": "ActivityLink/",
       "menuName": {
         "en": "Fleet Health Reports",
@@ -22,7 +22,7 @@
       "svgIcon": "https://SEU_HOST_PUBLICO/icon.svg"
     },
     {
-      "url": "https://SEU_HOST_PUBLICO/exceptions/?v=0.6.4",
+      "url": "https://SEU_HOST_PUBLICO/exceptions/?v=0.6.5",
       "path": "ActivityLink/",
       "menuName": {
         "en": "Fleet Exception 360",
