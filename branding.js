@@ -4,8 +4,8 @@
   const ADD_IN_ID = 'PF3lsbBEQeurnbFs_2HzeA';
   const KEY = 'fleet-health-branding-v1';
   const IMAGE_PART_KEY = 'fleet-health-pdf-png-part-v1';
-  const PART_SIZE = 7000;
-  const MAX_PARTS = 16;
+  const PART_SIZE = 4000;
+  const MAX_PARTS = 24;
   const ALLOWED_FONTS = ['Montserrat','Inter','Roboto','Arial','system-ui'];
   const defaults = ()=>({name:'',logo:'',icon:'',website:'',font:'system-ui'});
   let apiRef=null,recordId=null,settings=defaults(),modal=null,ready=false,logoRef=null,loadWarning='',persistedLogo='',localOverride=false;
@@ -51,18 +51,23 @@
     if(typeof id!=='string'||!id.trim())throw new Error('A API retornou um identificador inválido ao gravar os dados.');
     return id;
   }
+  function phaseError(error,phase){
+    try{if(error&&typeof error==='object')error.fleetPhase=phase}catch(e){}
+    return error;
+  }
   function readableError(error){
+    const suffix=error&&error.fleetPhase?' ['+error.fleetPhase+']':'';
     const raw=String(error&&(
       error.message||(error.error&&(error.error.message||error.error))||
       error.description||error.name
     )||error||'Erro desconhecido');
     if(/undefined exception|genericexception/i.test(raw)){
-      return 'A Geotab não informou a causa da recusa. Verifique se o seu perfil possui as permissões "Gerenciar dados de Add-In" e "Visualizar dados de Add-In".';
+      return 'A Geotab não informou a causa da recusa. Verifique se o seu perfil possui as permissões "Gerenciar dados de Add-In" e "Visualizar dados de Add-In".'+suffix;
     }
     if(/permission|security|clearance|not authorized|unauthoriz|forbidden|access denied|privileg|sem permissão|acesso negado/i.test(raw)){
-      return 'O usuário conectado não tem permissão suficiente para gravar esta configuração. Solicite "Gerenciar dados de Add-In" ao administrador da base.';
+      return 'O usuário conectado não tem permissão suficiente para gravar esta configuração. Solicite "Gerenciar dados de Add-In" ao administrador da base.'+suffix;
     }
-    return raw.slice(0,350);
+    return (raw+suffix).slice(0,380);
   }
   // Fallback opcional e explícito: nunca compartilhar o logo com outra base por engano.
   function localKey(){
@@ -150,20 +155,32 @@
           const added=await rpc('Add',{typeName:'AddInData',entity:{addInId:ADD_IN_ID,details}});
           newParts.push({id:addedId(added),details});
         }
-      }catch(e){await removeParts(newParts);throw e}
+      }catch(e){await removeParts(newParts);throw phaseError(e,'fragmento da imagem')}
       nextRef={batch,count};
     }
     const brand={...clean,logo:nextRef?'':clean.logo,logoRef:nextRef};
     const details={kind:KEY,brand,updatedAt:new Date().toISOString()};
-    if(JSON.stringify(details).length>9900){
+    if(JSON.stringify(details).length>9800){
       await removeParts(newParts);
       throw new Error('Configuração muito grande. Reduza o tamanho do ícone ou use URL HTTPS.');
     }
     try{
       const entity={addInId:ADD_IN_ID,details};
-      if(recordId){entity.id=recordId;await rpc('Set',{typeName:'AddInData',entity})}
+      if(recordId){
+        const previousId=recordId;
+        entity.id=recordId;
+        try{
+          await rpc('Set',{typeName:'AddInData',entity});
+        }catch(setError){
+          // Se o registro antigo não puder ser alterado (por exemplo, grupo legado),
+          // grava uma nova configuração e remove a anterior quando possível.
+          const added=await rpc('Add',{typeName:'AddInData',entity:{addInId:ADD_IN_ID,details}});
+          recordId=addedId(added);
+          try{await rpc('Remove',{typeName:'AddInData',entity:{id:previousId}})}catch(e){}
+        }
+      }
       else{const added=await rpc('Add',{typeName:'AddInData',entity});recordId=addedId(added)}
-    }catch(e){await removeParts(newParts);throw e}
+    }catch(e){await removeParts(newParts);throw phaseError(e,'configuração')}
     settings=clean;persistedLogo=clean.logo;logoRef=nextRef;ready=true;loadWarning='';clearLocal();applyBrand();
     if(oldRef&&(!nextRef||nextRef.batch!==oldRef.batch)){
       try{

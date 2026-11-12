@@ -1,23 +1,35 @@
 {
   "name": "fleetHealthScore",
-  "version": "0.6.3",
+  "supportEmail": "SEU_EMAIL_DE_SUPORTE",
+  "version": "0.6.4",
   "items": [
     {
-      "url": "https://SEU_HOST_PUBLICO/index.html?v=0.6.3",
+      "url": "https://SEU_HOST_PUBLICO/?v=0.6.4",
       "path": "ActivityLink/",
       "menuName": {
         "en": "Fleet Health Score",
         "pt-BR": "Fleet Health Score"
-      }
+      },
+      "svgIcon": "https://SEU_HOST_PUBLICO/icon.svg"
     },
     {
-      "url": "https://SEU_HOST_PUBLICO/exceptions/?v=0.6.3",
+      "url": "https://SEU_HOST_PUBLICO/reports/?v=0.6.4",
+      "path": "ActivityLink/",
+      "menuName": {
+        "en": "Fleet Health Reports",
+        "pt-BR": "Relatório PDF"
+      },
+      "svgIcon": "https://SEU_HOST_PUBLICO/icon.svg"
+    },
+    {
+      "url": "https://SEU_HOST_PUBLICO/exceptions/?v=0.6.4",
       "path": "ActivityLink/",
       "menuName": {
         "en": "Fleet Exception 360",
         "pt-BR": "Fleet Exception 360"
-      }
+      },
+      "svgIcon": "https://SEU_HOST_PUBLICO/icon.svg"
     }
   ],
-  "files": {}
+  "isSigned": false
 }
