@@ -19,7 +19,7 @@ Os indicadores são **heurísticos** e dependem das informações disponíveis n
 
 ## Instalação no MyGeotab
 
-1. Utilize o arquivo [`addin-config.json`](addin-config.json) para a versão hospedada no GitHub Pages. Atualmente a configuração está em **0.7.0**, inclui `supportEmail`, ícone SVG e os menus **Fleet Health Score** e **Fleet Exception 360**.
+1. Utilize o arquivo [`addin-config.json`](addin-config.json) para a versão hospedada no GitHub Pages. Atualmente a configuração está em **0.7.1**, inclui `supportEmail`, ícone SVG e os menus **Fleet Health Score** e **Fleet Exception 360**.
 2. No **MyGeotab → Administração → Sistema → Configurações do sistema → Add-Ins**, instale a configuração JSON ou atualize o Add-in existente. A localização desse menu pode variar conforme a versão e as permissões da conta.
 3. Salve e recarregue o MyGeotab. Abra um dos módulos com uma sessão autorizada.
 4. Ao clicar em **Baixar PDF**, escolha se deseja incluir um logo. O arquivo é aplicado somente àquele PDF.
@@ -90,4 +90,4 @@ Distribuído sob a **licença MIT**. Cópias e partes substanciais do software d
 
 ## Versão da distribuição
 
-A configuração pública deste repositório identifica a versão **0.7.0**. Em instalações já existentes, atualize o JSON do Add-in na conta quando necessário e valide o comportamento após a atualização. Alterações de documentação não substituem a instalação nem o teste no MyGeotab.
+A configuração pública deste repositório identifica a versão **0.7.1**. Em instalações já existentes, atualize o JSON do Add-in na conta quando necessário e valide o comportamento após a atualização. Alterações de documentação não substituem a instalação nem o teste no MyGeotab.

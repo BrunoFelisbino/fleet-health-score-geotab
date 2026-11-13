@@ -7,7 +7,7 @@ const files = ['index.html', 'reports/index.html', 'exceptions/index.html', 'pri
   'health-pdf.js', 'exceptions/pdf.js', 'exceptions/audit.js', 'exceptions/audit.css', 'reports/premium.css', 'addin-config.json', 'icon.svg'];
 const read = path => readFileSync(path, 'utf8');
 const current = JSON.parse(read('addin-config.json'));
-assert.equal(current.version, '0.7.0');
+assert.equal(current.version, '0.7.1');
 assert.equal(current.name, 'fleetHealthScore');
 assert.ok(/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(current.supportEmail || ''), 'supportEmail obrigatório no add-in');
 assert.ok(current.items.length >= 2, 'MyGeotab exige ao menos uma página ou botão');
