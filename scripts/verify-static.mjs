@@ -3,11 +3,11 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { Script } from 'node:vm';
 
-const files = ['index.html', 'reports/index.html', 'exceptions/index.html', 'branding.js',
+const files = ['index.html', 'reports/index.html', 'exceptions/index.html', 'print-options.js',
   'health-pdf.js', 'exceptions/pdf.js', 'exceptions/audit.js', 'exceptions/audit.css', 'reports/premium.css', 'addin-config.json', 'icon.svg'];
 const read = path => readFileSync(path, 'utf8');
 const current = JSON.parse(read('addin-config.json'));
-assert.equal(current.version, '0.6.5');
+assert.equal(current.version, '0.7.0');
 assert.equal(current.name, 'fleetHealthScore');
 assert.ok(/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(current.supportEmail || ''), 'supportEmail obrigatório no add-in');
 assert.ok(current.items.length >= 2, 'MyGeotab exige ao menos uma página ou botão');
@@ -37,14 +37,11 @@ for (const file of files) {
     }
   }
 }
-const logoSrc = read('branding.js');
-assert.ok(logoSrc.includes('function encodePdfPng('));
-assert.ok(logoSrc.includes('Configurar PDF'));
-assert.ok(logoSrc.includes('const IMAGE_PART_KEY'));
-const partSize = Number((logoSrc.match(/const PART_SIZE = (\d+);/) || [])[1]);
-assert.ok(partSize > 0 && partSize <= 5000,
-  'PART_SIZE deve manter margem sob o limite de 10.000 caracteres do AddInData');
-assert.ok(logoSrc.includes('catch(setError)'), 'Fallback de gravação da configuração ausente');
+const printSrc = read('print-options.js');
+assert.ok(printSrc.includes('Incluir logo no PDF'));
+assert.ok(printSrc.includes('image/svg+xml'));
+assert.ok(printSrc.includes('function decorate('));
+assert.ok(printSrc.includes('window.PrintOptions'), 'API de opções de impressão ausente');
 const index = read('index.html');
 const exceptionsPage = read('exceptions/index.html');
 assert.ok(exceptionsPage.includes('id="dateFrom"') && exceptionsPage.includes('id="dateTo"'),
@@ -60,4 +57,4 @@ assert.ok(license.startsWith('MIT License'));
 assert.ok(license.includes('Copyright (c) 2026 Bruno Henrique Felisbino Gonçalves'));
 assert.ok(read('README.md').includes('CONTRIBUTING.md'));
 assert.ok(existsSync('CONTRIBUTING.md'), 'Orientações de contribuição ausentes');
-console.log('Validado: JSON Geotab, assets, páginas, UTF-8, scripts e configuração PDF/QR.');
+console.log('Validado: JSON Geotab, assets, páginas, UTF-8, scripts e opções de impressão com logo.');

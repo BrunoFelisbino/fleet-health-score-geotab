@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Fleet Health Score — Geotab Add-In</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="../reports/premium.css?v=0.6.5" media="print"/>
-<link rel="stylesheet" href="./audit.css?v=0.6.5"/>
-<script src="../branding.js?v=0.6.5"></script>
-<script src="./audit.js?v=0.6.5"></script>
-<script src="./pdf.js?v=0.6.5"></script>
+<link rel="stylesheet" href="../reports/premium.css?v=0.7.0" media="print"/>
+<link rel="stylesheet" href="./audit.css?v=0.7.0"/>
+<script src="../print-options.js?v=0.7.0"></script>
+<script src="./audit.js?v=0.7.0"></script>
+<script src="./pdf.js?v=0.7.0"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>html,body{margin:0;padding:0;background:#f5f8fc;color:#172033;font-family:'Segoe UI',system-ui,sans-serif}</style>
 </head>
@@ -194,7 +194,7 @@ async function refreshExceptionCounts(api,from,now,token){const period=currentRa
 async function exportCSV(){if(!filtered.length)return;await enrichExceptionLocations(filtered,()=>{});const rows=[['data_inicio','data_fim','veiculo','placa','regra','instancias','duracao','velocidade_maxima','estado','driver']].concat(filtered.map(v=>[v.activeFrom,v.activeTo||'',v.veiculo,v.placa,v.regraNome||v.regra,eventInstances(v),fmtDuration(v.duration),speedValue(v),stateLabel(v.state),v.driver||'']));const csv=rows.map(r=>r.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(';')).join('\n');const blob=new Blob(['\uFEFF',csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fleet-exception-360.csv';a.click();URL.revokeObjectURL(a.href)}
 
 async function downloadExceptionPdf(mode='summary',vehicleId=null){if(!window.Exception360Pdf){alertMsg('Módulo de PDF não carregado. Atualize a página.',false,true);return}const selected=vehicleId?auditEvents(vehicleId):filtered;if(!selected.length){alertMsg('Nenhum evento encontrado para o PDF.',false,true);return}if(mode==='audit')await enrichExceptionLocations(selected,()=>{});const range=currentRange();window.Exception360Pdf.download({filtered:selected,vehicles:vehicles,problemFilter:problemFilter,rulesLabel:rulesLabel,mode:mode,periodFrom:range.from.toISOString(),periodTo:range.to.toISOString(),periodLabel:range.label})}
-function init(api){apiRef=api;shell();setRangeFromPeriod();if(window.FleetBranding)window.FleetBranding.initialize(api);if(api)load(api);else{setStatus('Não conectado');alertMsg('Conecte este Add-In à sua base MyGeotab para consultar dados reais.',false,true)}}
+function init(api){apiRef=api;shell();setRangeFromPeriod();if(api)load(api);else{setStatus('Não conectado');alertMsg('Conecte este Add-In à sua base MyGeotab para consultar dados reais.',false,true)}}
 if(!window.geotab)window.geotab={addin:{}};if(!window.geotab.addin)window.geotab.addin={};window.geotab.addin.fleetHealthScore=function(){return{initialize:function(api,state,cb){try{init(api)}catch(e){console.error(e);const root=$('app');if(root)root.innerHTML='<div style="padding:20px;color:#991b1b">Erro ao iniciar Fleet Exception 360: '+(e.message||e)+'</div>'}if(cb)cb()},focus:function(){if(map)setTimeout(()=>map.invalidateSize(),200)},blur:function(){}}};if(!window.location.href.includes('my.geotab'))setTimeout(()=>init(null),50);
 })();
 </script>

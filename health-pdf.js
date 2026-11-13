@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  // A imagem da organização só é carregada após conectar à conta Geotab.
+  // O logo é escolhido no momento da impressão e não é persistido.
 
   const esc = v => String(v ?? '')
     .replace(/&/g, '&amp;')
@@ -14,6 +14,12 @@
   const scColor = s => s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : s >= 40 ? '#f97316' : '#ef4444';
   const scLabel = s => s >= 80 ? 'Saudável' : s >= 60 ? 'Atenção' : s >= 40 ? 'Crítico' : 'Risco alto';
   const pdfBadge = s => s >= 80 ? 'pdf-ok' : s >= 60 ? 'pdf-warn' : s >= 40 ? 'pdf-critical' : 'pdf-risk';
+
+  let printLogo = '';
+  const logoHtml = className => printLogo
+    ? '<img class="' + esc(className || 'pdf-logo') + '" src="' + esc(printLogo) + '" alt="Logo do relatório"/>'
+    : '';
+  const scoreBand = s => s >= 80 ? 'Faixa saudável' : s >= 60 ? 'Faixa de atenção' : s >= 40 ? 'Faixa crítica' : 'Faixa de risco alto';
 
   function problem(v) {
     if (!v) return '-';
@@ -113,7 +119,7 @@
 <div class="pdf-page pdf-cover-page">
   <div class="pcp-dots"></div>
   <div class="pcp-header">
-    ${window.FleetBranding ? window.FleetBranding.logoHtml('pcp-logo') : ''}
+    ${logoHtml('pcp-logo')}
   </div>
   <div class="pcp-hero">
     <div class="pcp-title-block">
@@ -129,6 +135,14 @@
     <div class="pcp-chip"><div><div class="pcp-chip-label">Período do resultado</div><div class="pcp-chip-val">Últimos 7 dias</div></div></div>
     <div class="pcp-chip"><div><div class="pcp-chip-label">Score</div><div class="pcp-chip-val">Fleet Health Index</div></div></div>
     <div class="pcp-chip"><div><div class="pcp-chip-label">Gerado em</div><div class="pcp-chip-val">${generatedAt}</div></div></div>
+  </div>
+  <div class="pcp-toc">
+    <div class="pcp-toc-head">Índice do relatório</div>
+    <div class="pcp-toc-grid">
+      <div class="pcp-toc-item"><b>01</b><span>Resumo executivo</span><em>pág. 02</em></div>
+      <div class="pcp-toc-item"><b>02</b><span>Ranking técnico</span><em>pág. 03</em></div>
+      <div class="pcp-toc-item"><b>03</b><span>Plano de ação</span><em>pág. 04</em></div>
+    </div>
   </div>
   <div class="pcp-exec-card">
     <div class="pcp-exec-text">
@@ -151,6 +165,9 @@
           <span>Health Index</span>
         </div>
       </div>
+      <div class="pcp-index-band" style="color:${scoreColor}">${scoreBand(s.avg)}</div>
+      <div class="pcp-scale"><i class="r"></i><i class="o"></i><i class="y"></i><i class="g"></i></div>
+      <div class="pcp-scale-labels"><span>0</span><span>40</span><span>60</span><span>80</span><span>100</span></div>
     </div>
   </div>
   <div class="pdf-footer"><span>Fleet Health Score • ${esc(dbName)}</span><span class="page-number"></span></div>
@@ -161,7 +178,7 @@
   <div class="pdf-topbar"></div>
   <div class="pdf-brand">
     <div><h1 class="pdf-title">Resumo executivo</h1><div class="pdf-subtitle">KPIs e leitura estratégica da frota</div></div>
-    ${window.FleetBranding ? window.FleetBranding.logoHtml('pdf-logo') : ''}
+    ${logoHtml('pdf-logo')}
   </div>
   <div class="pdf-grid-4">
     <div class="pdf-kpi"><small>Fleet Health Index</small><b style="color:${scoreColor}">${s.avg}</b><span>de 100</span></div>
@@ -194,7 +211,7 @@
   <div class="pdf-topbar"></div>
   <div class="pdf-brand">
     <div><h1 class="pdf-title">Ranking técnico da frota</h1><div class="pdf-subtitle">Veículos mais críticos e suas causas principais</div></div>
-    ${window.FleetBranding ? window.FleetBranding.logoHtml('pdf-logo') : ''}
+    ${logoHtml('pdf-logo')}
   </div>
   <table class="pdf-table">
     <thead><tr>
@@ -232,7 +249,7 @@
   <div class="pdf-topbar"></div>
   <div class="pdf-brand">
     <div><h1 class="pdf-title">Plano de ação recomendado</h1><div class="pdf-subtitle">Prioridades de atuação operacional</div></div>
-    ${window.FleetBranding ? window.FleetBranding.logoHtml('pdf-logo') : ''}
+    ${logoHtml('pdf-logo')}
   </div>
   <div class="pdf-action"><h4>Prioridade 1 — possíveis remoções e desconexões</h4><p>Validar imediatamente energia, chicote, violação física, alimentação e histórico do dispositivo na data indicada. Pedir para verificar se o lacre ainda se encontra entre o dispositivo e o chicote, e entre o chicote e a tomada OBD 2.</p></div>
   <div class="pdf-action"><h4>Prioridade 2 — offline e sem comunicação</h4><p>Veículos sem comunicação há 7 dias ou mais estão fora da operação de dados. Veículos sem status há 30 dias ou mais estão fora da base ativa. Verificar se o veículo teve atividade depois da data da última comunicação. Se sim, agendar o quanto antes uma verificação física do dispositivo.</p></div>
@@ -272,6 +289,21 @@
       return;
     }
 
+    let printOptions = { includeLogo: false, logo: '' };
+    if (window.PrintOptions) {
+      try {
+        printOptions = await window.PrintOptions.ask({
+          title: 'Imprimir Fleet Health Score',
+          subtitle: 'Inclua um logo no cabeçalho, na capa/índice e nos rodapés do PDF.'
+        });
+      } catch (e) {
+        console.warn('Opções de impressão indisponíveis; seguindo sem logo.', e);
+        printOptions = { includeLogo: false, logo: '' };
+      }
+      if (printOptions === null) return;
+    }
+    printLogo = printOptions && printOptions.includeLogo ? printOptions.logo : '';
+
     if (btn) {
       btn.disabled = true;
       btn.textContent = 'Preparando PDF...';
@@ -284,35 +316,10 @@
     }
 
     stage.innerHTML = buildHtml(ctx);
+    if (window.PrintOptions) window.PrintOptions.decorate(stage, printLogo);
     const totalPages = stage.querySelectorAll('.pdf-page').length;
     stage.style.setProperty('--total-pages', '"' + totalPages + '"');
 
-    // QR institucional: abre o site oficial da organização, não um hash de validação.
-    const siteUrl = window.FleetBranding ? window.FleetBranding.siteUrl() : '';
-    const footer = stage.querySelector('.pdf-page:last-child .pdf-footer');
-    if (footer && siteUrl) {
-      const wrap = document.createElement('div');
-      wrap.className = 'pdf-brand-qr';
-      wrap.style.cssText = 'position:absolute;right:54px;bottom:54px;text-align:center;font-size:9px;color:#475569';
-      const label = document.createElement('div');
-      label.textContent = 'ACESSAR SITE';
-      label.style.cssText = 'margin-bottom:5px;font-weight:800;letter-spacing:.07em';
-      const link = document.createElement('a');
-      link.href = siteUrl;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;color:#176644;text-decoration:none';
-      const qr = document.createElement('img');
-      qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&format=png&data=' + encodeURIComponent(siteUrl);
-      qr.style.cssText = 'width:90px;height:90px;object-fit:contain';
-      qr.alt = 'QR Code para acessar o site configurado';
-      const caption = document.createElement('span');
-      caption.textContent = new URL(siteUrl).hostname;
-      caption.style.cssText = 'font-size:8px;font-weight:600';
-      link.append(qr, caption);
-      wrap.append(label, link);
-      footer.parentElement.appendChild(wrap);
-    }
     if (document.fonts && document.fonts.ready) {
       try { await document.fonts.ready; } catch (e) { /* fallback para Arial */ }
     }

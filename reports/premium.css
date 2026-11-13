@@ -73,3 +73,19 @@ body,#app{font-family:var(--fleet-brand-font,system-ui,Arial,sans-serif);backgro
   #pdfStage .pdf-logo,#pdfStage .pcp-logo {background:transparent !important;object-fit:contain !important}
   #pdfStage .pdf-brand-qr {break-inside:avoid}
 }
+
+/* Índice/capa do PDF e logo opcional de impressão. */
+.pcp-toc{margin:0 0 20px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 16px}
+.pcp-toc-head{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#93c5fd;font-weight:800;margin-bottom:8px}
+.pcp-toc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pcp-toc-item{display:flex;align-items:center;gap:8px;color:#e2e8f0;font-size:11px}
+.pcp-toc-item b{font-family:var(--mono);color:#38bdf8;font-size:11px}
+.pcp-toc-item span{flex:1}
+.pcp-toc-item em{font-style:normal;color:#94a3b8;font-size:10px;white-space:nowrap}
+.pcp-index-wrap{text-align:center}
+.pcp-index-band{margin-top:8px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.pcp-scale{display:flex;height:6px;border-radius:99px;overflow:hidden;margin-top:6px}
+.pcp-scale i{flex:1}
+.pcp-scale .r{background:#ef4444}.pcp-scale .o{background:#f97316}.pcp-scale .y{background:#f59e0b}.pcp-scale .g{background:#10b981}
+.pcp-scale-labels{display:flex;justify-content:space-between;color:#94a3b8;font-size:8px;font-family:var(--mono);margin-top:3px}
+.pdf-footer-logo{display:inline-block}

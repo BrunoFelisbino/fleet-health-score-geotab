@@ -11,7 +11,7 @@ A página utiliza `Device` (veículos ativos), `Group` (grupos), `Rule` (regras)
 - **Filtros:** grupo, regra, texto da regra, veículo/placa/nome e intervalo personalizado de data/hora.
 - **Visões:** indicadores, distribuição, ranking por instâncias, duração acumulada, mapa e auditoria por veículo.
 - **Exportação:** CSV; PDF **Resumo** (quatro páginas) ou **Auditoria detalhada** (resumo e páginas adicionais por veículo). O PDF executivo prioriza eventos, regras, duração e estado, sem colunas de cobertura, instâncias ou identificadores internos.
-- **Identidade:** botão **Configurar PDF** para PNG, nome, ícone, fonte e destino do QR Code.
+- **PDF com logo opcional:** ao baixar, escolha incluir um SVG, PNG, JPG ou WebP. O logo entra no cabeçalho, na capa e nos rodapés apenas daquele PDF, sem persistência.
 
 A página registra `geotab.addin.fleetHealthScore`, o mesmo namespace do painel principal. Os dados são consultados pela sessão autorizada no MyGeotab, sem conteúdo demonstrativo fictício.
 

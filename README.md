@@ -11,42 +11,40 @@
 
 | Módulo | Recursos |
 | --- | --- |
-| **Fleet Health Score** | Score técnico da frota, indicadores de comunicação e tensão, filtros por grupo/veículo, distribuição de risco, mapa, CSV e PDF. |
+| **Fleet Health Score** | Score técnico da frota, tendência técnica de 7 dias no estilo Grafana, indicadores de comunicação e tensão, filtro por **Possível remoção**, distribuição de risco, mapa, CSV e PDF. |
 | **Fleet Health Reports** | Entrada de compatibilidade para o relatório PDF existente (`reports/`). |
 | **Fleet Exception 360** | Eventos de `ExceptionEvent`, regras, ranking por instâncias, mapa, filtros com período personalizado (data e hora), CSV, PDF resumo e auditoria detalhada por veículo, incluindo velocidade máxima por evento. |
-| **Configurar PDF** | Identidade visual opcional dos relatórios: PNG, nome, ícone, fonte e URL HTTPS usada no QR Code. |
 
 Os indicadores são **heurísticos** e dependem das informações disponíveis na base conectada. Um alerta técnico não comprova falha, remoção indevida ou conduta irregular sem investigação. Quando faltam dados, o painel deve indicar ausência ou indisponibilidade, sem criar leituras fictícias.
 
 ## Instalação no MyGeotab
 
-1. Utilize o arquivo [`addin-config.json`](addin-config.json) para a versão hospedada no GitHub Pages. Atualmente a configuração está em **0.6.5**, inclui `supportEmail`, ícone SVG e os menus **Fleet Health Score**, **Relatório PDF** e **Fleet Exception 360**.
+1. Utilize o arquivo [`addin-config.json`](addin-config.json) para a versão hospedada no GitHub Pages. Atualmente a configuração está em **0.7.0**, inclui `supportEmail`, ícone SVG e os menus **Fleet Health Score** e **Fleet Exception 360**.
 2. No **MyGeotab → Administração → Sistema → Configurações do sistema → Add-Ins**, instale a configuração JSON ou atualize o Add-in existente. A localização desse menu pode variar conforme a versão e as permissões da conta.
 3. Salve e recarregue o MyGeotab. Abra um dos módulos com uma sessão autorizada.
-4. Se desejar personalizar os PDFs, use **Configurar PDF** dentro do módulo e salve a identidade visual.
+4. Ao clicar em **Baixar PDF**, escolha se deseja incluir um logo. O arquivo é aplicado somente àquele PDF.
 
 Para hospedar a sua própria cópia, publique os arquivos estáticos em **HTTPS** e parta de [`addin-config.example.json`](addin-config.example.json), substituindo `SEU_HOST_PUBLICO` e `SEU_EMAIL_DE_SUPORTE` pelos dados da sua organização. Ajuste as URLs e os ícones de todos os menus, não apenas da página principal.
 
-O caminho [`reports/`](reports/) permanece disponível como entrada de compatibilidade e também é exposto como menu **Relatório PDF**. O JavaScript executado na página não modifica automaticamente o JSON já instalado na conta MyGeotab.
+O caminho [`reports/`](reports/) permanece disponível como entrada de compatibilidade. O JavaScript executado na página não modifica automaticamente o JSON já instalado na conta MyGeotab.
 
 ## Como o Add-in utiliza dados
 
 - As consultas ocorrem **durante o uso**, com as permissões da sessão autenticada no **MyGeotab**, por meio da API disponibilizada ao Add-in.
 - São consultadas entidades como `Device`, `DeviceStatusInfo`, `StatusData`, `FaultData`, `Group`, `Rule` e `ExceptionEvent`, conforme a funcionalidade e os dados autorizados.
 - O GitHub Pages disponibiliza os **arquivos estáticos**; o repositório não recebe um espelho da base, não guarda credenciais e não sincroniza automaticamente os dados de clientes.
-- As preferências de identidade dos PDFs podem ser armazenadas na base conectada via **AddInData**. Há também uma opção de salvamento **somente no navegador**, quando identificada a base.
-- Mapas e outros recursos podem depender de serviços externos. A geração do QR Code usa `api.qrserver.com` e transmite **a URL HTTPS configurada para o QR Code** a esse serviço; evite informar links privados ou com tokens sensíveis.
+- As preferências de filtro permanecem apenas na sessão do navegador. O logo do PDF é escolhido no momento da impressão e **não é salvo** na base Geotab.
+- Mapas e outros recursos podem depender de serviços externos.
 
 **Privacidade:** nunca adicione credenciais, capturas com dados de clientes, placas reais, nomes de motoristas, chaves de API ou dados operacionais a commits, issues ou pull requests públicos.
 
-## PDFs, identidade visual e isolamento
+## PDFs e logo opcional
 
-Em **Configurar PDF**, o usuário autorizado pode definir uma imagem PNG (até 5 MB na seleção), usar uma imagem de URL HTTPS, informar o destino do QR Code e personalizar nome, ícone e fonte. A imagem é otimizada no navegador; quando armazenada no MyGeotab, pode ser distribuída em fragmentos `AddInData`. Um PNG demasiado grande pode exigir simplificação ou hospedagem própria.
+Ao clicar em **Baixar PDF**, o add-in abre as opções de impressão. Se desejar, selecione um arquivo **SVG**, PNG, JPG ou WebP (até 512 KB) e marque **Incluir logo no PDF**. O logo é aplicado no cabeçalho, na capa/índice e nos rodapés do relatório gerado. A escolha vale apenas para aquela impressão; nada é gravado na base MyGeotab.
 
-- As preferências salvas na **base MyGeotab** são compartilhadas com usuários autorizados daquela base, conforme as permissões da API.
-- **Salvar somente neste navegador** não sincroniza a identidade com outros usuários ou dispositivos.
-- O **ícone do menu lateral** é definido pelo JSON de instalação, não pelo formulário de identidade; o formulário personaliza a interface interna e os PDFs.
-- Para instalar forks diferentes no **mesmo banco**, defina identificadores próprios de `AddInData` no `branding.js` para evitar conflito de configurações.
+- O logo não é compartilhado entre usuários nem persiste ao recarregar a página.
+- SVGs com scripts ou referências externas são recusados por segurança.
+- O **ícone do menu lateral** é definido pelo JSON de instalação.
 
 No **Fleet Exception 360**, a ação **Baixar PDF** oferece dois formatos:
 
@@ -61,7 +59,7 @@ Cada veículo do ranking permite abrir sua auditoria e exportar os dados corresp
 | --- | --- |
 | `index.html` | Painel Fleet Health Score |
 | `exceptions/` | Fleet Exception 360, auditoria e PDF |
-| `branding.js` | Preferências e identidade dos PDFs |
+| `print-options.js` | Diálogo de impressão com logo opcional (SVG, PNG, JPG ou WebP) |
 | `health-pdf.js` | Relatório PDF do painel de saúde |
 | `reports/` | Estilos e rota de compatibilidade |
 | `translations/` | Recursos de tradução |
@@ -92,4 +90,4 @@ Distribuído sob a **licença MIT**. Cópias e partes substanciais do software d
 
 ## Versão da distribuição
 
-A configuração pública deste repositório identifica a versão **0.6.5**. Em instalações já existentes, atualize o JSON do Add-in na conta quando necessário e valide o comportamento após a atualização. Alterações de documentação não substituem a instalação nem o teste no MyGeotab.
+A configuração pública deste repositório identifica a versão **0.7.0**. Em instalações já existentes, atualize o JSON do Add-in na conta quando necessário e valide o comportamento após a atualização. Alterações de documentação não substituem a instalação nem o teste no MyGeotab.

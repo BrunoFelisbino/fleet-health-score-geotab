@@ -5,7 +5,6 @@ import { runInNewContext } from 'node:vm';
 const read=path=>readFileSync(path,'utf8');
 const captured=[];
 const win={
-  FleetBranding:{logoHtml:()=>'',siteUrl:()=>''},
   print:()=>captured.push(stage.innerHTML)
 };
 runInNewContext(read('exceptions/audit.js'),{window:win,Date,Intl});

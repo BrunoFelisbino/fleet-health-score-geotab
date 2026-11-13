@@ -1,13 +1,18 @@
 (function () {
   'use strict';
 
-  // A imagem da organização só é carregada após conectar à conta Geotab.
+  // O logo é escolhido no momento da impressão e não é persistido.
 
   const esc = v => String(v ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+
+  let printLogo = '';
+  const logoHtml = className => printLogo
+    ? '<img class="' + esc(className || 'pdf-logo') + '" src="' + esc(printLogo) + '" alt="Logo do relatório"/>'
+    : '';
 
   const fmtNum = n => Number(n || 0).toLocaleString('pt-BR');
   const plur = (n, singular, plural) => Number(n) === 1 ? singular : plural;
@@ -165,7 +170,7 @@
 <div class="pdf-page pdf-cover-page">
   <div class="pcp-dots"></div>
   <div class="pcp-header">
-    ${window.FleetBranding ? window.FleetBranding.logoHtml('pcp-logo') : ''}
+    ${logoHtml('pcp-logo')}
   </div>
   <div class="pcp-hero">
     <div class="pcp-title-block">
@@ -213,7 +218,7 @@
   <div class="pdf-topbar"></div>
   <div class="pdf-brand">
     <div><h1 class="pdf-title">Resumo executivo</h1><div class="pdf-subtitle">KPIs, regras e leitura operacional</div></div>
-    ${window.FleetBranding ? window.FleetBranding.logoHtml('pdf-logo') : ''}
+    ${logoHtml('pdf-logo')}
   </div>
   <div class="pdf-grid-4">
     <div class="pdf-kpi"><small>Eventos</small><b style="color:#ef4444">${fmtNum(s.events)}</b><span>no período</span></div>
@@ -250,7 +255,7 @@
   <div class="pdf-topbar"></div>
   <div class="pdf-brand">
     <div><h1 class="pdf-title">Ranking por eventos</h1><div class="pdf-subtitle">Veículos com exceções dentro do filtro aplicado</div></div>
-    ${window.FleetBranding ? window.FleetBranding.logoHtml('pdf-logo') : ''}
+    ${logoHtml('pdf-logo')}
   </div>
   <table class="pdf-table">
     <thead><tr>
@@ -289,7 +294,7 @@
   <div class="pdf-topbar"></div>
   <div class="pdf-brand">
     <div><h1 class="pdf-title">Plano de ação recomendado</h1><div class="pdf-subtitle">Prioridades de atuação operacional</div></div>
-    ${window.FleetBranding ? window.FleetBranding.logoHtml('pdf-logo') : ''}
+    ${logoHtml('pdf-logo')}
   </div>
   <div class="pdf-action"><h4>Prioridade 1 — regra de maior volume</h4><p>${top ? 'A regra "' + esc(top.name) + '" concentra ' + fmtNum(top.events) + ' eventos no filtro. Revisar a configuração da regra, o contexto operacional e a causa raiz antes de classificar como falha do veículo ou do dispositivo.' : 'Não há regra acionada no filtro atual.'}</p></div>
   <div class="pdf-action"><h4>Prioridade 2 — veículos reincidentes</h4><p>${topVehicles.length ? 'Começar pelos veículos ' + topVehicles.map(v => esc(v.placa || v.veiculo)).join(', ') + '. Validar turno, rota, operador e histórico de eventos para separar comportamento operacional de problema técnico.' : 'Nenhum veículo com evento no filtro.'}</p></div>
@@ -325,7 +330,7 @@
     function head(title,subtitle){
       return '<div class="pdf-topbar"></div><div class="pdf-brand"><div><h1 class="pdf-title">'+escape(title)+
         '</h1><div class="pdf-subtitle">'+escape(subtitle)+'</div></div>'+
-        (window.FleetBranding?window.FleetBranding.logoHtml('pdf-logo'):'')+'</div>';
+        logoHtml('pdf-logo')+'</div>';
     }
     function footer(plate){
       return '<div class="pdf-footer"><span>Fleet Exception 360 • Auditoria • '+escape(plate)+
@@ -398,6 +403,21 @@
       : (selectedText('periodFilter') || 'Hoje (24h)'));
     const filters = filterList(ctx.problemFilter, ctx.rulesLabel, periodLabel);
 
+    let printOptions = { includeLogo: false, logo: '' };
+    if (window.PrintOptions) {
+      try {
+        printOptions = await window.PrintOptions.ask({
+          title: 'Imprimir Fleet Exception 360',
+          subtitle: 'Inclua um logo no cabeçalho, na capa e nos rodapés do PDF.'
+        });
+      } catch (e) {
+        console.warn('Opções de impressão indisponíveis; seguindo sem logo.', e);
+        printOptions = { includeLogo: false, logo: '' };
+      }
+      if (printOptions === null) return;
+    }
+    printLogo = printOptions && printOptions.includeLogo ? printOptions.logo : '';
+
     if (btn) {
       btn.disabled = true;
       btn.textContent = 'Preparando PDF...';
@@ -417,35 +437,10 @@
     }
     stage.innerHTML = buildHtml(s, filters, generatedAt, periodLabel) +
       (mode==='audit'?auditPages(filtered,generatedAt):'');
+    if (window.PrintOptions) window.PrintOptions.decorate(stage, printLogo);
     const totalPages = stage.querySelectorAll('.pdf-page').length;
     stage.style.setProperty('--total-pages', '"' + totalPages + '"');
 
-    // QR institucional: abre o site oficial da organização, não um hash de validação.
-    const siteUrl = window.FleetBranding ? window.FleetBranding.siteUrl() : '';
-    const footer = stage.querySelector('.pdf-page:last-child .pdf-footer');
-    if (footer && siteUrl) {
-      const wrap = document.createElement('div');
-      wrap.className = 'pdf-brand-qr';
-      wrap.style.cssText = 'position:absolute;right:54px;bottom:54px;text-align:center;font-size:9px;color:#475569';
-      const label = document.createElement('div');
-      label.textContent = 'ACESSAR SITE';
-      label.style.cssText = 'margin-bottom:5px;font-weight:800;letter-spacing:.07em';
-      const link = document.createElement('a');
-      link.href = siteUrl;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;color:#176644;text-decoration:none';
-      const qr = document.createElement('img');
-      qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&format=png&data=' + encodeURIComponent(siteUrl);
-      qr.style.cssText = 'width:90px;height:90px;object-fit:contain';
-      qr.alt = 'QR Code para acessar o site configurado';
-      const caption = document.createElement('span');
-      caption.textContent = new URL(siteUrl).hostname;
-      caption.style.cssText = 'font-size:8px;font-weight:600';
-      link.append(qr, caption);
-      wrap.append(label, link);
-      footer.parentElement.appendChild(wrap);
-    }
     if (document.fonts && document.fonts.ready) {
       try { await document.fonts.ready; } catch (e) { /* fallback para Arial */ }
     }
