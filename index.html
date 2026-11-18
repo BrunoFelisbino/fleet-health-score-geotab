@@ -71,7 +71,7 @@ function buildTrendModel(statusRecords,allRecords){
   const fleet=filtered||[],todayKey=dayKeyLocal(new Date());
   for(let i=6;i>=0;i--){
     const day=new Date(start.getTime()-i*DAY),dayEnd=new Date(day.getTime()+DAY),winFrom=new Date(day.getTime()-6*DAY),key=dayKeyLocal(day);
-    let offline=0,scoreSum=0,scoreN=0;
+    let offline=0,removal=0,scoreSum=0,scoreN=0;
     fleet.forEach(v=>{
       const st=statusByDevice[v.id]||[],hasStatus=st.some(t=>t>=day&&t<dayEnd);
       if(!(key===todayKey&&v.online)&&!hasStatus)offline++;
@@ -79,9 +79,10 @@ function buildTrendModel(statusRecords,allRecords){
       for(const x of recs){if(x.t>=dayEnd)break;last=x.t;if(x.t>=winFrom)window.push(x.r)}
       if(!last&&v.lastDate){const lt=new Date(v.lastDate);if(!isNaN(lt)&&lt<dayEnd)last=lt}
       const a=analyze(window,{lastDate:last},dayEnd.getTime());
+      if(a.unplugged>0)removal++;
       scoreSum+=a.score;scoreN++;
     });
-    out.push({key,date:day,offline,fleet:fleet.length,score:scoreN?Math.round(scoreSum/scoreN):null});
+    out.push({key,date:day,offline,removal,fleet:fleet.length,score:scoreN?Math.round(scoreSum/scoreN):null});
   }
   return out;
 }
@@ -155,7 +156,7 @@ function renderTrend(){
   const rows=buildTrendModel(trendStatus14,trendRecords14);
   if(!rows.length||!rows[rows.length-1].fleet){box.innerHTML='<div class="trend-empty">Sem veículos no filtro para montar a tendência.</div>';return}
   const latest=rows[rows.length-1],W=760,H=260,L=44,R=44,T=16,B=34;
-  const maxV=Math.max(1,...rows.map(r=>r.fleet),...rows.map(r=>r.offline));
+  const maxV=Math.max(1,...rows.map(r=>r.fleet),...rows.map(r=>r.offline),...rows.map(r=>r.removal));
   const yMax=Math.max(4,Math.ceil(maxV/4)*4);
   const x=i=>L+(W-L-R)*(i/(rows.length-1||1));
   const yL=v=>T+(H-T-B)*(1-v/yMax),yR=v=>T+(H-T-B)*(1-v/100);
@@ -167,8 +168,8 @@ function renderTrend(){
     const dots=pts.map((p,i)=>'<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="2.6" fill="'+color+'" stroke="#0b1220" stroke-width="1.5"><title>'+esc(rows[i].key)+' • '+esc(label)+': '+rows[i][key]+'</title></circle>').join('');
     return fill+'<path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="'+(key==='fleet'?1.8:2.2)+'" stroke-linejoin="round" stroke-linecap="round"'+(key==='fleet'?' stroke-dasharray="4 4"':'')+'/>'+dots;
   };
-  const paths=pathFor('fleet','Frota','#94a3b8',yL,false)+pathFor('offline','Offline','#fb7185',yL,true)+pathFor('score','Score médio','#34d399',yR,false);
-  const legend='<span class="trend-key"><i style="background:#94a3b8;border-radius:2px;width:14px;height:2px;box-shadow:none"></i>Frota <b>'+latest.fleet+'</b></span><span class="trend-key"><i style="background:#fb7185;box-shadow:0 0 8px #fb7185"></i>Offline <b>'+latest.offline+'</b></span><span class="trend-key"><i style="background:#34d399;box-shadow:0 0 8px #34d399"></i>Score médio <b>'+(latest.score==null?'N/I':latest.score)+'</b></span>';
+  const paths=pathFor('fleet','Frota','#94a3b8',yL,false)+pathFor('offline','Offline','#fb7185',yL,true)+pathFor('removal','Remoção','#ef4444',yL,true)+pathFor('score','Score médio','#34d399',yR,false);
+  const legend='<span class="trend-key"><i style="background:#94a3b8;border-radius:2px;width:14px;height:2px;box-shadow:none"></i>Frota <b>'+latest.fleet+'</b></span><span class="trend-key"><i style="background:#fb7185;box-shadow:0 0 8px #fb7185"></i>Offline <b>'+latest.offline+'</b></span><span class="trend-key"><i style="background:#ef4444;box-shadow:0 0 8px #ef4444"></i>Remoção <b>'+latest.removal+'</b></span><span class="trend-key"><i style="background:#34d399;box-shadow:0 0 8px #34d399"></i>Score médio <b>'+(latest.score==null?'N/I':latest.score)+'</b></span>';
   box.innerHTML='<div class="trend-head"><div class="trend-total"><b>'+(latest.score==null?'N/I':latest.score)+'</b><span>score médio • '+latest.offline+' offline de '+latest.fleet+' hoje • filtro: '+esc(fullFilterText(problemFilter))+'</span></div><div class="trend-legend">'+legend+'</div></div><svg class="trend-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Offline versus frota e score médio nos últimos 7 dias">'+grid+labels+paths+'</svg><div class="trend-axis">eixo Y esquerdo: veículos • eixo Y direito: score • eixo X: últimos 7 dias</div>';
 }
 function renderDist(){const total=filtered.length||1;const rows=[['80 - 100',filtered.filter(v=>v.score>=80).length,pct(filtered.filter(v=>v.score>=80).length,total)+'%','var(--blue)'],['60 - 79',filtered.filter(v=>v.score>=60&&v.score<80).length,pct(filtered.filter(v=>v.score>=60&&v.score<80).length,total)+'%','var(--blue)'],['40 - 59',filtered.filter(v=>v.score>=40&&v.score<60).length,pct(filtered.filter(v=>v.score>=40&&v.score<60).length,total)+'%','var(--orange)'],['0 - 39',filtered.filter(v=>v.score<40).length,pct(filtered.filter(v=>v.score<40).length,total)+'%','var(--red)']];$('distBox').innerHTML=bars(rows)}
