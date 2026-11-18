@@ -24,7 +24,7 @@
   function problem(v) {
     if (!v) return '-';
     if (v.unplugged > 0) return 'Possível remoção não autorizada';
-    if (v.offline) return v.dias >= 30 ? 'Offline 30d+ (sem dados na base)' : 'Sem comunicação ' + v.dias + ' dias';
+    if (v.offline) return 'Sem comunicação ' + v.dias + ' dias';
     if (v.vlow > 0) return 'Tensão baixa';
     if (v.vhigh > 0) return 'Tensão alta';
     if (v.reboots > 2) return 'Reboot excessivo';
@@ -229,7 +229,7 @@
       <td style="font-weight:900;color:${scColor(v.score)}">${v.score}</td>
       <td style="font-weight:800;font-family:monospace;font-size:9px">${esc(v.placa || '-')}</td>
       <td style="font-size:9px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.nome || '-')}</td>
-      <td style="font-size:9px">${v.dias >= 7 ? '7d+' : v.dias + 'd'}</td>
+      <td style="font-size:9px">${v.dias + 'd'}</td>
       <td style="font-size:9px">${esc(problem(v))}</td>
       <td style="font-size:8px;color:#64748b">${esc(v.removalDatesText || '-')}</td>
       <td><span class="pdf-badge ${pdfBadge(v.score)}">${scLabel(v.score)}</span></td>
